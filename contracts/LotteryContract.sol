@@ -1,20 +1,22 @@
 pragma solidity ^0.6.0;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "./interfaces/IERC20.sol";
+// import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./VRFConsumerBase.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-contract LotteryContract is VRFConsumerBase, ERC20, ReentrancyGuard {
+
+contract LotteryContract is VRFConsumerBase, ReentrancyGuard {
     using Address for address;
+    using SafeMath for uint256;
 
     struct LotteryConfig {
         uint256 numOfWinners;
         uint256 playersLimit;
         uint256 registrationAmount;
         uint256 adminFeePercentage;
-        address lotteryTokenAddress;
+        // address lotteryTokenAddress;
         uint256 randomSeed;
         uint256 startedAt;
     }
@@ -29,6 +31,7 @@ contract LotteryContract is VRFConsumerBase, ERC20, ReentrancyGuard {
     uint256 public rewardPoolAmount;
 
     IERC20 lotteryToken;
+    IERC20 buyToken;
     LotteryStatus public lotteryStatus;
     LotteryConfig lotteryConfig;
 
@@ -47,7 +50,7 @@ contract LotteryContract is VRFConsumerBase, ERC20, ReentrancyGuard {
     event LotterySettled();
 
     event LotteryStarted(
-        address indexed lotteryTokenAddress,
+        // address indexed lotteryTokenAddress,
         uint256 playersLimit,
         uint256 numOfWinners,
         uint256 registrationAmount,
@@ -69,13 +72,13 @@ contract LotteryContract is VRFConsumerBase, ERC20, ReentrancyGuard {
      * configuration of VRF Smart Contract. They can only be set once during
      * construction.
      */
-    constructor()
+    constructor(IERC20 _buyToken, IERC20 _lotteryToken)
         public
         VRFConsumerBase(
             0xdD3782915140c8f3b190B5D67eAc6dc5760C46E9, // VRF Coordinator
             0xa36085F69e2889c224210F603D836748e7dC0088 // LINK Token
         )
-        ERC20("LotteryTokens", "LOT") //Internal LOT ERC20 token
+        // ERC20("LotteryTokens", "LOT") //Internal LOT ERC20 token
     {
         adminAddress = msg.sender;
         lotteryStatus = LotteryStatus.NOTSTARTED;
@@ -84,6 +87,8 @@ contract LotteryContract is VRFConsumerBase, ERC20, ReentrancyGuard {
         fee = 0.1 * 10**18; // 0.1 LINK
         areWinnersGenerated = false;
         isRandomNumberGenerated = false;
+        buyToken = _buyToken; // ERC20 contract
+        lotteryToken = _lotteryToken; // ERC20 contract
     }
 
     /**
@@ -142,7 +147,6 @@ contract LotteryContract is VRFConsumerBase, ERC20, ReentrancyGuard {
         uint256 playersLimit,
         uint256 registrationAmount,
         uint256 adminFeePercentage,
-        address lotteryTokenAddress,
         uint256 randomSeed
     ) public {
         require(
@@ -162,14 +166,14 @@ contract LotteryContract is VRFConsumerBase, ERC20, ReentrancyGuard {
             playersLimit,
             registrationAmount,
             adminFeePercentage,
-            lotteryTokenAddress,
+            // lotteryTokenAddress,
             randomSeed,
             block.timestamp
         );
         lotteryStatus = LotteryStatus.INPROGRESS;
-        lotteryToken = IERC20(lotteryTokenAddress);
+        // lotteryToken = IERC20(lotteryTokenAddress);
         emit LotteryStarted(
-            lotteryTokenAddress,
+            // lotteryTokenAddress,
             playersLimit,
             numOfWinners,
             registrationAmount,
@@ -206,7 +210,7 @@ contract LotteryContract is VRFConsumerBase, ERC20, ReentrancyGuard {
             "The Lottery is not started or closed"
         );
         lotteryPlayers.push(msg.sender);
-        lotteryToken.transferFrom(
+        buyToken.transferFrom(
             msg.sender,
             address(this),
             lotteryConfig.registrationAmount
@@ -214,7 +218,9 @@ contract LotteryContract is VRFConsumerBase, ERC20, ReentrancyGuard {
         totalLotteryPool = totalLotteryPool.add(
             lotteryConfig.registrationAmount
         );
-        _mint(address(msg.sender), lotteryConfig.registrationAmount);
+        // call _mint from constructor ERC20
+        lotteryToken.mint(msg.sender, lotteryConfig.registrationAmount);
+        
         if (lotteryPlayers.length == lotteryConfig.playersLimit) {
             emit MaxParticipationCompleted(msg.sender);
             getRandomNumber(lotteryConfig.randomSeed);
@@ -274,7 +280,7 @@ contract LotteryContract is VRFConsumerBase, ERC20, ReentrancyGuard {
         );
         lotteryStatus = LotteryStatus.CLOSED;
 
-        lotteryToken.transfer(adminAddress, adminFeesAmount);
+        buyToken.transfer(adminAddress, adminFeesAmount);
 
         emit LotterySettled();
     }
@@ -296,8 +302,9 @@ contract LotteryContract is VRFConsumerBase, ERC20, ReentrancyGuard {
         );
         for (uint256 i = 0; i < lotteryConfig.numOfWinners; i = i.add(1)) {
             if (address(msg.sender) == winnerAddresses[winnerIndexes[i]]) {
-                _burn(address(msg.sender), lotteryConfig.registrationAmount);
-                lotteryToken.transfer(address(msg.sender), rewardPoolAmount);
+                // _burn(address(msg.sender), lotteryConfig.registrationAmount);
+                lotteryToken.burnFrom(msg.sender, lotteryConfig.registrationAmount);
+                buyToken.transfer(address(msg.sender), rewardPoolAmount);
                 winnerAddresses[winnerIndexes[i]] = address(0);
             }
         }
@@ -346,7 +353,7 @@ contract LotteryContract is VRFConsumerBase, ERC20, ReentrancyGuard {
         );
         uint256 tokenBalance = lotteryToken.balanceOf(address(this));
         if (tokenBalance > 0) {
-            lotteryToken.transfer(adminAddress, tokenBalance);
+            buyToken.transfer(adminAddress, tokenBalance);
         }
         delete lotteryConfig;
         delete randomResult;
