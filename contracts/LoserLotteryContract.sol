@@ -976,10 +976,10 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard {
             lotteryStatus == LotteryStatus.NOTSTARTED,
             "Error: An existing lottery is in progress"
         );
-        require(
-            numOfWinners <= playersLimit.div(2),
-            "Number of winners should be less than or equal to half the number of players"
-        );
+        // require(
+        //     numOfWinners <= playersLimit.div(2),
+        //     "Number of winners should be less than or equal to half the number of players"
+        // );
         lotteryConfig = LotteryConfig(
             numOfWinners,
             playersLimit,
