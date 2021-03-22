@@ -38,10 +38,6 @@ contract ERC20 is Context, IERC20 {
     mapping (address => mapping (address => uint256)) private _allowances;
 
     uint256 private _totalSupply;
-
-    string public name = "Safe Transfer Token";
-    string public symbol = "STT";
-    uint8 public decimals = 18;
     
     address admin;
     
