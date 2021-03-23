@@ -43,6 +43,12 @@ contract ERC20 is Context, IERC20 {
     
     mapping (address => bool) public minters;
 
+    string public name;
+    
+    string public symbol; 
+    
+    uint8 public decimals;
+
     /**
      * @dev Sets the values for {name} and {symbol}, initializes {decimals} with
      * a default value of 18.
