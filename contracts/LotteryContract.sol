@@ -59,6 +59,18 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard {
 
     event LotteryReset();
 
+    modifier onlyAdmin() {
+        require(adminAddress == msg.sender, "Only admin is allowed");
+        _;
+    }
+    
+    function changeAdmin(address _newAdmin) public onlyAdmin {
+        require(_newAdmin != address(0), "Invalid address");
+        
+        adminAddress = _newAdmin;
+    }
+
+
     /**
      * @dev Sets the value for adminAddress which establishes the Admin of the contract
      * Only the adminAddress will be able to set the lottery configuration,
@@ -72,7 +84,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard {
      * configuration of VRF Smart Contract. They can only be set once during
      * construction.
      */
-    constructor(IERC20 _buyToken, IERC20 _lotteryToken)
+    constructor(IERC20 _buyToken, IERC20 _lotteryToken, bool _isOnlyETHAccepted)
         public
         VRFConsumerBase(
             0xdD3782915140c8f3b190B5D67eAc6dc5760C46E9, // VRF Coordinator
@@ -200,7 +212,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard {
      * - Number of players allowed to enter in the lottery should be
      *   less than or equal to the allowed players `lotteryConfig.playersLimit`.
      */
-    function enterLottery() public returns (uint256) {
+    function enterLottery() payable public returns (uint256)  {
         require(
             lotteryPlayers.length < lotteryConfig.playersLimit,
             "Max Participation for the Lottery Reached"
@@ -210,11 +222,18 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard {
             "The Lottery is not started or closed"
         );
         lotteryPlayers.push(msg.sender);
-        buyToken.transferFrom(
-            msg.sender,
-            address(this),
-            lotteryConfig.registrationAmount
-        );
+        
+        if(isOnlyETHAccepted) {
+          require(msg.value == lotteryConfig.registrationAmount, "Insufficent registration amount provided");
+          
+        } else {
+            buyToken.transferFrom(
+                msg.sender,
+                address(this),
+                lotteryConfig.registrationAmount
+            );
+        }
+        
         totalLotteryPool = totalLotteryPool.add(
             lotteryConfig.registrationAmount
         );
@@ -241,7 +260,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard {
      * - The random number has been generated
      * - The Lottery is in progress.
      */
-    function settleLottery() public {
+        function settleLottery() payable public {
         require(
             isRandomNumberGenerated,
             "Lottery Configuration still in progress. Please try in a short while"
@@ -280,8 +299,13 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard {
         );
         lotteryStatus = LotteryStatus.CLOSED;
 
-        buyToken.transfer(adminAddress, adminFeesAmount);
-
+        if(isOnlyETHAccepted) {
+            (bool status, ) = payable(adminAddress).call{value: adminFeesAmount}("");
+            require(status, "Admin fees not transferred");
+        } else {
+            buyToken.transfer(adminAddress, adminFeesAmount);
+        }
+        
         emit LotterySettled();
     }
 
@@ -295,7 +319,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard {
      *
      * - The Lottery is settled i.e. the lotteryStatus is CLOSED.
      */
-    function collectRewards() public nonReentrant {
+    function collectRewards() payable public nonReentrant {
         require(
             lotteryStatus == LotteryStatus.CLOSED,
             "The Lottery is not settled. Please try in a short while."
@@ -304,7 +328,12 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard {
             if (address(msg.sender) == winnerAddresses[winnerIndexes[i]]) {
                 // _burn(address(msg.sender), lotteryConfig.registrationAmount);
                 lotteryToken.burnFrom(msg.sender, lotteryConfig.registrationAmount);
-                buyToken.transfer(address(msg.sender), rewardPoolAmount);
+                if(isOnlyETHAccepted) {
+                    (bool status, ) = payable(msg.sender).call{value: rewardPoolAmount}("");
+                     require(status, "Amount not transferred to winner");
+                } else {
+                    buyToken.transfer(address(msg.sender), rewardPoolAmount);
+                }
                 winnerAddresses[winnerIndexes[i]] = address(0);
             }
         }
