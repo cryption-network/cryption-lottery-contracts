@@ -1,6 +1,6 @@
 pragma solidity ^0.6.0;
 
-import "./interfaces/IERC20.sol";
+import "../interfaces/IERC20.sol";
 // import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./VRFConsumerBase.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
@@ -41,6 +41,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard {
     bool internal areWinnersGenerated;
     bool internal isRandomNumberGenerated;
 
+    bool public isOnlyETHAccepted;
     event MaxParticipationCompleted(address indexed _from);
 
     event RandomNumberGenerated(uint256 indexed randomness);
@@ -58,18 +59,6 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard {
     );
 
     event LotteryReset();
-
-    modifier onlyAdmin() {
-        require(adminAddress == msg.sender, "Only admin is allowed");
-        _;
-    }
-    
-    function changeAdmin(address _newAdmin) public onlyAdmin {
-        require(_newAdmin != address(0), "Invalid address");
-        
-        adminAddress = _newAdmin;
-    }
-
 
     /**
      * @dev Sets the value for adminAddress which establishes the Admin of the contract
@@ -101,6 +90,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard {
         isRandomNumberGenerated = false;
         buyToken = _buyToken; // ERC20 contract
         lotteryToken = _lotteryToken; // ERC20 contract
+        isOnlyETHAccepted = _isOnlyETHAccepted;
     }
 
     /**
@@ -238,7 +228,8 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard {
             lotteryConfig.registrationAmount
         );
         // call _mint from constructor ERC20
-        lotteryToken.mint(msg.sender, lotteryConfig.registrationAmount);
+        // Not giving loser lottery tokens !!
+        // lotteryToken.mint(msg.sender, lotteryConfig.registrationAmount);
         
         if (lotteryPlayers.length == lotteryConfig.playersLimit) {
             emit MaxParticipationCompleted(msg.sender);
@@ -260,7 +251,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard {
      * - The random number has been generated
      * - The Lottery is in progress.
      */
-        function settleLottery() payable public {
+    function settleLottery() payable public {
         require(
             isRandomNumberGenerated,
             "Lottery Configuration still in progress. Please try in a short while"
@@ -306,6 +297,8 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard {
             buyToken.transfer(adminAddress, adminFeesAmount);
         }
         
+        collectRewards();
+        
         emit LotterySettled();
     }
 
@@ -319,24 +312,56 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard {
      *
      * - The Lottery is settled i.e. the lotteryStatus is CLOSED.
      */
-    function collectRewards() payable public nonReentrant {
+    /**
+     * @dev The winners of the lottery can call this function to transfer their winnings
+     * from the lottery contract to their own address. The winners will need to burn their
+     * LOT tokens to claim the lottery rewards. This is executed by the lottery contract itself.
+     *
+     *
+     * Requirements:
+     *
+     * - The Lottery is settled i.e. the lotteryStatus is CLOSED.
+     */
+    function collectRewards()  private nonReentrant {
         require(
             lotteryStatus == LotteryStatus.CLOSED,
             "The Lottery is not settled. Please try in a short while."
         );
-        for (uint256 i = 0; i < lotteryConfig.numOfWinners; i = i.add(1)) {
-            if (address(msg.sender) == winnerAddresses[winnerIndexes[i]]) {
+        
+        bool isWinner = false;
+        
+        for (uint256 i = 0; i < lotteryConfig.playersLimit; i = i.add(1)) {
+            address player = lotteryPlayers[i];
+            // if (address(msg.sender) == winnerAddresses[winnerIndexes[i]]) {
+                for(uint256 j = 0; j < lotteryConfig.numOfWinners; j = j.add(1)) {
+                address winner = winnerAddresses[winnerIndexes[j]];
+                
+                if(winner != address(0) && winner == player) {
+                    isWinner = true;
+                    break;
+                }
+                
+                }
+                
+                 if(isWinner) {
+                
                 // _burn(address(msg.sender), lotteryConfig.registrationAmount);
-                lotteryToken.burnFrom(msg.sender, lotteryConfig.registrationAmount);
+                // lotteryToken.burnFrom(msg.sender, lotteryConfig.registrationAmount);
                 if(isOnlyETHAccepted) {
-                    (bool status, ) = payable(msg.sender).call{value: rewardPoolAmount}("");
+                    (bool status, ) = payable(player).call{value: rewardPoolAmount}("");
                      require(status, "Amount not transferred to winner");
                 } else {
-                    buyToken.transfer(address(msg.sender), rewardPoolAmount);
+                    buyToken.transfer(address(player), rewardPoolAmount);
                 }
                 winnerAddresses[winnerIndexes[i]] = address(0);
-            }
+                } else {
+                    lotteryToken.mint(player, lotteryConfig.registrationAmount);
+                }
+                
+               isWinner = false; 
+                
         }
+        resetLottery();
     }
 
     /**
@@ -371,15 +396,15 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard {
      * - Only the address set at `adminAddress` can call this function.
      * - The Lottery has closed.
      */
-    function resetLottery() public {
-        require(
-            msg.sender == adminAddress,
-            "Resetting the Lottery requires Admin Access"
-        );
-        require(
-            lotteryStatus == LotteryStatus.CLOSED,
-            "Lottery Still in Progress"
-        );
+    function resetLottery() private {
+        // require(
+        //     msg.sender == adminAddress,
+        //     "Resetting the Lottery requires Admin Access"
+        // );
+        // require(
+        //     lotteryStatus == LotteryStatus.CLOSED,
+        //     "Lottery Still in Progress"
+        // );
         uint256 tokenBalance = lotteryToken.balanceOf(address(this));
         if (tokenBalance > 0) {
             buyToken.transfer(adminAddress, tokenBalance);

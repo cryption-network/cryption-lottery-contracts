@@ -1,9 +1,9 @@
 
-// File: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/security/ReentrancyGuard.sol
+// File: @openzeppelin/contracts/utils/ReentrancyGuard.sol
 
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT///
 
-pragma solidity ^0.7.0;
+pragma solidity >=0.6.0 <0.8.0;
 
 /**
  * @dev Contract module that helps prevent reentrant calls to a function.
@@ -38,7 +38,7 @@ abstract contract ReentrancyGuard {
 
     uint256 private _status;
 
-    constructor () {
+    constructor () internal {
         _status = _NOT_ENTERED;
     }
 
@@ -64,10 +64,10 @@ abstract contract ReentrancyGuard {
     }
 }
 
-// File: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Address.sol
+// File: @openzeppelin/contracts/utils/Address.sol
 
 
-pragma solidity ^0.7.0;
+pragma solidity >=0.6.2 <0.8.0;
 
 /**
  * @dev Collection of functions related to the address type
@@ -255,9 +255,9 @@ library Address {
     }
 }
 
-// File: browser/VRFRequestIDBase.sol
+// File: contracts/VRFRequestIDBase.sol
 
-pragma solidity ^0.7.0;
+pragma solidity ^0.6.0;
 
 contract VRFRequestIDBase {
 
@@ -296,9 +296,10 @@ contract VRFRequestIDBase {
     return keccak256(abi.encodePacked(_keyHash, _vRFInputSeed));
   }
 }
-// File: browser/LinkTokenInterface.sol
 
-pragma solidity ^0.7.2;
+// File: interfaces/LinkTokenInterface.sol
+
+pragma solidity ^0.6.0;
 
 interface LinkTokenInterface {
   function allowance(address owner, address spender) external view returns (uint256 remaining);
@@ -314,10 +315,11 @@ interface LinkTokenInterface {
   function transferAndCall(address to, uint256 value, bytes calldata data) external returns (bool success);
   function transferFrom(address from, address to, uint256 value) external returns (bool success);
 }
-// File: browser/SafeMath.sol
+
+// File: @openzeppelin/contracts/math/SafeMath.sol
 
 
-pragma solidity ^0.7.2;
+pragma solidity >=0.6.0 <0.8.0;
 
 /**
  * @dev Wrappers over Solidity's arithmetic operations with added overflow
@@ -335,6 +337,8 @@ pragma solidity ^0.7.2;
 library SafeMath {
     /**
      * @dev Returns the addition of two unsigned integers, with an overflow flag.
+     *
+     * _Available since v3.4._
      */
     function tryAdd(uint256 a, uint256 b) internal pure returns (bool, uint256) {
         uint256 c = a + b;
@@ -344,6 +348,8 @@ library SafeMath {
 
     /**
      * @dev Returns the substraction of two unsigned integers, with an overflow flag.
+     *
+     * _Available since v3.4._
      */
     function trySub(uint256 a, uint256 b) internal pure returns (bool, uint256) {
         if (b > a) return (false, 0);
@@ -352,6 +358,8 @@ library SafeMath {
 
     /**
      * @dev Returns the multiplication of two unsigned integers, with an overflow flag.
+     *
+     * _Available since v3.4._
      */
     function tryMul(uint256 a, uint256 b) internal pure returns (bool, uint256) {
         // Gas optimization: this is cheaper than requiring 'a' not being zero, but the
@@ -365,6 +373,8 @@ library SafeMath {
 
     /**
      * @dev Returns the division of two unsigned integers, with a division by zero flag.
+     *
+     * _Available since v3.4._
      */
     function tryDiv(uint256 a, uint256 b) internal pure returns (bool, uint256) {
         if (b == 0) return (false, 0);
@@ -373,6 +383,8 @@ library SafeMath {
 
     /**
      * @dev Returns the remainder of dividing two unsigned integers, with a division by zero flag.
+     *
+     * _Available since v3.4._
      */
     function tryMod(uint256 a, uint256 b) internal pure returns (bool, uint256) {
         if (b == 0) return (false, 0);
@@ -520,9 +532,9 @@ library SafeMath {
     }
 }
 
-// File: browser/VRFConsumerBase.sol
+// File: contracts/VRFConsumerBase.sol
 
-pragma solidity ^0.7.2;
+pragma solidity ^0.6.0;
 
 
 
@@ -699,7 +711,7 @@ abstract contract VRFConsumerBase is VRFRequestIDBase {
    *
    * @dev https://docs.chain.link/docs/link-token-contracts
    */
-  constructor(address _vrfCoordinator, address _link)  {
+  constructor(address _vrfCoordinator, address _link) public {
     vrfCoordinator = _vrfCoordinator;
     LINK = LinkTokenInterface(_link);
   }
@@ -712,10 +724,10 @@ abstract contract VRFConsumerBase is VRFRequestIDBase {
     fulfillRandomness(requestId, randomness);
   }
 }
-// File: browser/IERC20.sol
 
+// File: interfaces/IERC20.sol
 
-pragma solidity >=0.6.0 <0.8.0;
+pragma solidity ^0.6.0;
 
 /**
  * @dev Interface of the ERC20 standard as defined in the EIP.
@@ -794,17 +806,17 @@ interface IERC20 {
      */
     event Approval(address indexed owner, address indexed spender, uint256 value);
 }
-// File: browser/LoserLotteryContract.sol
+// File: contracts/LotteryContract.sol
 
-pragma solidity ^0.7.2;
+pragma solidity ^0.6.0;
 
-
-
-
+// import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 
 
-contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard {
+
+
+contract LotteryContract is VRFConsumerBase, ReentrancyGuard {
     using Address for address;
     using SafeMath for uint256;
 
@@ -827,12 +839,10 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard {
     uint256 public adminFeesAmount;
     uint256 public rewardPoolAmount;
 
-    IERC20 lotteryToken;
-    IERC20 buyToken;
-    IERC20 distributionToken;
-    uint256 distributionAmount;
+    IERC20 public lotteryToken;
+    IERC20 public buyToken;
     LotteryStatus public lotteryStatus;
-    LotteryConfig lotteryConfig;
+    LotteryConfig public lotteryConfig;
 
     bytes32 internal keyHash;
     uint256 internal fee;
@@ -840,6 +850,7 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard {
     bool internal areWinnersGenerated;
     bool internal isRandomNumberGenerated;
 
+    bool public isOnlyETHAccepted;
     event MaxParticipationCompleted(address indexed _from);
 
     event RandomNumberGenerated(uint256 indexed randomness);
@@ -871,7 +882,7 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard {
      * configuration of VRF Smart Contract. They can only be set once during
      * construction.
      */
-    constructor(IERC20 _distributionToken, uint256 _distributionAmount, IERC20 _lotteryToken)
+    constructor(IERC20 _buyToken, IERC20 _lotteryToken, bool _isOnlyETHAccepted)
         public
         VRFConsumerBase(
             0xdD3782915140c8f3b190B5D67eAc6dc5760C46E9, // VRF Coordinator
@@ -886,28 +897,9 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard {
         fee = 0.1 * 10**18; // 0.1 LINK
         areWinnersGenerated = false;
         isRandomNumberGenerated = false;
-        distributionToken = _distributionToken;
+        buyToken = _buyToken; // ERC20 contract
         lotteryToken = _lotteryToken; // ERC20 contract
-        distributionAmount = _distributionAmount;
-    }
-    
-    modifier onlyAdmin() {
-        require(msg.sender == adminAddress, "Only admin can perform this operation");
-        _;
-    }
-    
-    function changeAdmin(address _newAdmin) public onlyAdmin {
-        require(_newAdmin != address(0), "Invalid address");
-        adminAddress = _newAdmin;
-        
-    }
-    
-    function changeDistributionAmount(uint256 _newAmount) public onlyAdmin {
-        distributionAmount = _newAmount;
-    }
-    
-    function changeDistributionToken(IERC20 _newDistributionToken) public onlyAdmin {
-        distributionToken = _newDistributionToken;
+        isOnlyETHAccepted = _isOnlyETHAccepted;
     }
 
     /**
@@ -976,6 +968,10 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard {
             lotteryStatus == LotteryStatus.NOTSTARTED,
             "Error: An existing lottery is in progress"
         );
+        require(numOfWinners != 0, "Number of winner must not be 0");
+        
+        require(numOfWinners < playersLimit, "Number pf players must be greater than winners" );
+        
         // require(
         //     numOfWinners <= playersLimit.div(2),
         //     "Number of winners should be less than or equal to half the number of players"
@@ -1019,7 +1015,7 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard {
      * - Number of players allowed to enter in the lottery should be
      *   less than or equal to the allowed players `lotteryConfig.playersLimit`.
      */
-    function enterLottery() public returns (uint256) {
+    function enterLottery() payable public returns (uint256)  {
         require(
             lotteryPlayers.length < lotteryConfig.playersLimit,
             "Max Participation for the Lottery Reached"
@@ -1029,11 +1025,24 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard {
             "The Lottery is not started or closed"
         );
         lotteryPlayers.push(msg.sender);
-
-        lotteryToken.burnFrom(msg.sender, lotteryConfig.registrationAmount);
+        
+        if(isOnlyETHAccepted) {
+          require(msg.value == lotteryConfig.registrationAmount, "Insufficent registration amount provided");
+          
+        } else {
+            buyToken.transferFrom(
+                msg.sender,
+                address(this),
+                lotteryConfig.registrationAmount
+            );
+        }
+        
         totalLotteryPool = totalLotteryPool.add(
             lotteryConfig.registrationAmount
         );
+        // call _mint from constructor ERC20
+        // Not giving loser lottery tokens !!
+        // lotteryToken.mint(msg.sender, lotteryConfig.registrationAmount);
         
         if (lotteryPlayers.length == lotteryConfig.playersLimit) {
             emit MaxParticipationCompleted(msg.sender);
@@ -1055,7 +1064,7 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard {
      * - The random number has been generated
      * - The Lottery is in progress.
      */
-    function settleLottery() public {
+    function settleLottery() payable public {
         require(
             isRandomNumberGenerated,
             "Lottery Configuration still in progress. Please try in a short while"
@@ -1086,16 +1095,23 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard {
         }
         areWinnersGenerated = true;
         emit WinnersGenerated(winnerIndexes);
-        // adminFeesAmount = (
-        //     (totalLotteryPool.mul(lotteryConfig.adminFeePercentage)).div(100)
-        // );
+        adminFeesAmount = (
+            (totalLotteryPool.mul(lotteryConfig.adminFeePercentage)).div(100)
+        );
         rewardPoolAmount = (totalLotteryPool.sub(adminFeesAmount)).div(
             lotteryConfig.numOfWinners
         );
         lotteryStatus = LotteryStatus.CLOSED;
 
-        // buyToken.transfer(adminAddress, adminFeesAmount);
-        collectRewards();
+        if(isOnlyETHAccepted) {
+            (bool status, ) = payable(adminAddress).call{value: adminFeesAmount}("");
+            require(status, "Admin fees not transferred");
+        } else {
+            buyToken.transfer(adminAddress, adminFeesAmount);
+        }
+        
+        // collectRewards();
+        
         emit LotterySettled();
     }
 
@@ -1109,21 +1125,45 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard {
      *
      * - The Lottery is settled i.e. the lotteryStatus is CLOSED.
      */
-    function collectRewards() private nonReentrant {
+    function collectRewards()  public nonReentrant {
         require(
             lotteryStatus == LotteryStatus.CLOSED,
             "The Lottery is not settled. Please try in a short while."
         );
-        for (uint256 i = 0; i < lotteryConfig.numOfWinners; i = i.add(1)) {
-            if (address(msg.sender) == winnerAddresses[winnerIndexes[i]]) {
+        
+        bool isWinner = false;
+        
+        for (uint256 i = 0; i < lotteryConfig.playersLimit; i = i.add(1)) {
+            address player = lotteryPlayers[i];
+            // if (address(msg.sender) == winnerAddresses[winnerIndexes[i]]) {
+                for(uint256 j = 0; j < lotteryConfig.numOfWinners; j = j.add(1)) {
+                address winner = winnerAddresses[winnerIndexes[j]];
+                
+                if(winner != address(0) && winner == player) {
+                    isWinner = true;
+                    break;
+                }
+                
+                }
+                
+                 if(isWinner) {
+                
                 // _burn(address(msg.sender), lotteryConfig.registrationAmount);
                 // lotteryToken.burnFrom(msg.sender, lotteryConfig.registrationAmount);
-                // buyToken.transfer(address(msg.sender), rewardPoolAmount);
-                distributionToken.transfer(msg.sender, distributionAmount);
+                if(isOnlyETHAccepted) {
+                    (bool status, ) = payable(player).call{value: rewardPoolAmount}("");
+                     require(status, "Amount not transferred to winner");
+                } else {
+                    buyToken.transfer(address(player), rewardPoolAmount);
+                }
                 winnerAddresses[winnerIndexes[i]] = address(0);
-            }
+                } else {
+                    lotteryToken.mint(player, lotteryConfig.registrationAmount);
+                }
+                
+               isWinner = false; 
+                
         }
-
         resetLottery();
     }
 

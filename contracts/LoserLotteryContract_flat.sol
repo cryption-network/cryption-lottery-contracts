@@ -1,4 +1,7 @@
 
+// File: contracts/LoserLotteryContract.sol
+
+
 // File: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/security/ReentrancyGuard.sol
 
 // SPDX-License-Identifier: MIT
@@ -827,12 +830,12 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard {
     uint256 public adminFeesAmount;
     uint256 public rewardPoolAmount;
 
-    IERC20 lotteryToken;
-    IERC20 buyToken;
-    IERC20 distributionToken;
-    uint256 distributionAmount;
+    IERC20 public lotteryToken;
+    IERC20 public buyToken;
+    IERC20 public distributionToken;
+    uint256 public distributionAmount;
     LotteryStatus public lotteryStatus;
-    LotteryConfig lotteryConfig;
+    LotteryConfig public lotteryConfig;
 
     bytes32 internal keyHash;
     uint256 internal fee;
@@ -1095,7 +1098,9 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard {
         lotteryStatus = LotteryStatus.CLOSED;
 
         // buyToken.transfer(adminAddress, adminFeesAmount);
-        collectRewards();
+
+        // collectRewards();
+
         emit LotterySettled();
     }
 
@@ -1109,21 +1114,36 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard {
      *
      * - The Lottery is settled i.e. the lotteryStatus is CLOSED.
      */
-    function collectRewards() private nonReentrant {
+    function collectRewards() public nonReentrant {
         require(
             lotteryStatus == LotteryStatus.CLOSED,
             "The Lottery is not settled. Please try in a short while."
         );
-        for (uint256 i = 0; i < lotteryConfig.numOfWinners; i = i.add(1)) {
-            if (address(msg.sender) == winnerAddresses[winnerIndexes[i]]) {
-                // _burn(address(msg.sender), lotteryConfig.registrationAmount);
-                // lotteryToken.burnFrom(msg.sender, lotteryConfig.registrationAmount);
-                // buyToken.transfer(address(msg.sender), rewardPoolAmount);
+        
+        bool  isWinner = false;
+                for (uint256 i = 0; i < lotteryConfig.playersLimit; i = i.add(1)) {
+            address player = lotteryPlayers[i];
+            // if (address(msg.sender) == winnerAddresses[winnerIndexes[i]]) {
+                for(uint256 j = 0; j < lotteryConfig.numOfWinners; j = j.add(1)) {
+                address winner = winnerAddresses[winnerIndexes[j]];
+                
+                if(winner != address(0) && winner == player) {
+                    isWinner = true;
+                    break;
+                }
+                
+                }
+                
+                 if(isWinner) {
+                
                 distributionToken.transfer(msg.sender, distributionAmount);
                 winnerAddresses[winnerIndexes[i]] = address(0);
-            }
+                }
+                
+               isWinner = false; 
+                
         }
-
+        
         resetLottery();
     }
 
