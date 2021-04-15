@@ -1142,6 +1142,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard {
                 if(winner != address(0) && winner == player) {
                     isWinner = true;
                     break;
+                    winnerAddresses[winnerIndexes[j]] = address(0);
                 }
                 
                 }
@@ -1156,7 +1157,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard {
                 } else {
                     buyToken.transfer(address(player), rewardPoolAmount);
                 }
-                winnerAddresses[winnerIndexes[i]] = address(0);
+
                 } else {
                     lotteryToken.mint(player, lotteryConfig.registrationAmount);
                 }
