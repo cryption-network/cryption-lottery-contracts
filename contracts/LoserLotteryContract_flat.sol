@@ -1129,6 +1129,7 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard {
                 
                 if(winner != address(0) && winner == player) {
                     isWinner = true;
+                    winnerAddresses[winnerIndexes[j]] = address(0);
                     break;
                 }
                 
@@ -1137,7 +1138,7 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard {
                  if(isWinner) {
                 
                 distributionToken.transfer(msg.sender, distributionAmount);
-                winnerAddresses[winnerIndexes[i]] = address(0);
+                // winnerAddresses[winnerIndexes[i]] = address(0);
                 }
                 
                isWinner = false; 
@@ -1192,7 +1193,7 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard {
         if (tokenBalance > 0) {
             buyToken.transfer(adminAddress, tokenBalance);
         }
-        delete lotteryConfig;
+        // delete lotteryConfig;
         delete randomResult;
         delete lotteryStatus;
         delete totalLotteryPool;
