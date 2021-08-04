@@ -1,13 +1,13 @@
 pragma solidity ^0.6.0;
 
-import "../interfaces/IERC20.sol";
-// import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "./interfaces/IERC20.sol";
 import "./VRFConsumerBase.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 
-contract LotteryContract is VRFConsumerBase, ReentrancyGuard {
+contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
     using Address for address;
     using SafeMath for uint256;
 
@@ -23,7 +23,11 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard {
 
     address[] public lotteryPlayers;
     address public adminAddress;
-    enum LotteryStatus {NOTSTARTED, INPROGRESS, CLOSED}
+    enum LotteryStatus {
+        NOTSTARTED,
+        INPROGRESS,
+        CLOSED
+    }
     mapping(uint256 => address) public winnerAddresses;
     uint256[] public winnerIndexes;
     uint256 public totalLotteryPool;
@@ -41,17 +45,22 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard {
     bool internal areWinnersGenerated;
     bool internal isRandomNumberGenerated;
 
-    bool public isOnlyETHAccepted;
+    bool public pauseLottery;
     event MaxParticipationCompleted(address indexed _from);
 
     event RandomNumberGenerated(uint256 indexed randomness);
 
     event WinnersGenerated(uint256[] winnerIndexes);
 
-    event LotterySettled();
+    event LotterySettled(
+        uint256 _rewardPoolAmount,
+        uint256 _players,
+        uint256 _adminFees
+    );
+
+    // LotterySettled(rewardPoolAmount, players, adminFeesAmount);
 
     event LotteryStarted(
-        // address indexed lotteryTokenAddress,
         uint256 playersLimit,
         uint256 numOfWinners,
         uint256 registrationAmount,
@@ -73,13 +82,13 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard {
      * configuration of VRF Smart Contract. They can only be set once during
      * construction.
      */
-    constructor(IERC20 _buyToken, IERC20 _lotteryToken, bool _isOnlyETHAccepted)
+    constructor(IERC20 _buyToken, IERC20 _lotteryToken)
         public
         VRFConsumerBase(
             0xdD3782915140c8f3b190B5D67eAc6dc5760C46E9, // VRF Coordinator
             0xa36085F69e2889c224210F603D836748e7dC0088 // LINK Token
         )
-        // ERC20("LotteryTokens", "LOT") //Internal LOT ERC20 token
+        Ownable()
     {
         adminAddress = msg.sender;
         lotteryStatus = LotteryStatus.NOTSTARTED;
@@ -90,7 +99,23 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard {
         isRandomNumberGenerated = false;
         buyToken = _buyToken; // ERC20 contract
         lotteryToken = _lotteryToken; // ERC20 contract
-        isOnlyETHAccepted = _isOnlyETHAccepted;
+        // isOnlyETHAccepted = _isOnlyETHAccepted;
+    }
+
+    function pauseNextLottery() public onlyOwner {
+        require(
+            msg.sender == adminAddress,
+            "Starting the Lottery requires Admin Access"
+        );
+        pauseLottery = true;
+    }
+
+    function unPauseNextLottery() public onlyOwner {
+        require(
+            msg.sender == adminAddress,
+            "Starting the Lottery requires Admin Access"
+        );
+        pauseLottery = false;
     }
 
     /**
@@ -202,7 +227,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard {
      * - Number of players allowed to enter in the lottery should be
      *   less than or equal to the allowed players `lotteryConfig.playersLimit`.
      */
-    function enterLottery() payable public returns (uint256)  {
+    function enterLottery() public payable returns (uint256) {
         require(
             lotteryPlayers.length < lotteryConfig.playersLimit,
             "Max Participation for the Lottery Reached"
@@ -212,28 +237,31 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard {
             "The Lottery is not started or closed"
         );
         lotteryPlayers.push(msg.sender);
-        
-        if(isOnlyETHAccepted) {
-          require(msg.value == lotteryConfig.registrationAmount, "Insufficent registration amount provided");
-          
-        } else {
-            buyToken.transferFrom(
-                msg.sender,
-                address(this),
-                lotteryConfig.registrationAmount
-            );
-        }
-        
+
+        // if (isOnlyETHAccepted) {
+        //     require(
+        //         msg.value == lotteryConfig.registrationAmount,
+        //         "Insufficent registration amount provided"
+        //     );
+        // } else {
+        buyToken.transferFrom(
+            msg.sender,
+            address(this),
+            lotteryConfig.registrationAmount
+        );
+        // }
+
         totalLotteryPool = totalLotteryPool.add(
             lotteryConfig.registrationAmount
         );
         // call _mint from constructor ERC20
         // Not giving loser lottery tokens !!
         // lotteryToken.mint(msg.sender, lotteryConfig.registrationAmount);
-        
+
         if (lotteryPlayers.length == lotteryConfig.playersLimit) {
-            emit MaxParticipationCompleted(msg.sender);
+            // emit MaxParticipationCompleted(msg.sender); // this is not needed now
             getRandomNumber(lotteryConfig.randomSeed);
+            settleLottery();
         }
         return (lotteryPlayers.length).sub(1);
     }
@@ -251,7 +279,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard {
      * - The random number has been generated
      * - The Lottery is in progress.
      */
-    function settleLottery() payable public {
+    function settleLottery() private {
         require(
             isRandomNumberGenerated,
             "Lottery Configuration still in progress. Please try in a short while"
@@ -288,18 +316,31 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard {
         rewardPoolAmount = (totalLotteryPool.sub(adminFeesAmount)).div(
             lotteryConfig.numOfWinners
         );
-        lotteryStatus = LotteryStatus.CLOSED;
+        lotteryStatus = LotteryStatus.CLOSED; // ANalyze whether it is needed
 
-        if(isOnlyETHAccepted) {
-            (bool status, ) = payable(adminAddress).call{value: adminFeesAmount}("");
-            require(status, "Admin fees not transferred");
-        } else {
-            buyToken.transfer(adminAddress, adminFeesAmount);
-        }
-        
+        // if (isOnlyETHAccepted) {
+        //     (bool status, ) = payable(adminAddress).call{
+        //         value: adminFeesAmount
+        //     }("");
+        //     require(status, "Admin fees not transferred");
+        // } else {
+        buyToken.transfer(adminAddress, adminFeesAmount);
+        // }
+
         collectRewards();
-        
-        emit LotterySettled();
+
+        emit LotterySettled(rewardPoolAmount, lotteryConfig.numOfWinners, adminFeesAmount);
+    }
+
+    function getWinningAmount() public view returns (uint256) {
+        uint256 adminFees = (
+            (totalLotteryPool.mul(lotteryConfig.adminFeePercentage)).div(100)
+        );
+        uint256 rewardPool = (totalLotteryPool.sub(adminFees)).div(
+            lotteryConfig.numOfWinners
+        );
+
+        return rewardPool;
     }
 
     /**
@@ -322,46 +363,49 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard {
      *
      * - The Lottery is settled i.e. the lotteryStatus is CLOSED.
      */
-    function collectRewards()  private nonReentrant {
-        require(
-            lotteryStatus == LotteryStatus.CLOSED,
-            "The Lottery is not settled. Please try in a short while."
-        );
-        
+    function collectRewards() private nonReentrant {
+        // require(
+        //     lotteryStatus == LotteryStatus.CLOSED,
+        //     "The Lottery is not settled. Please try in a short while."
+        // );
+
         bool isWinner = false;
-        
+
         for (uint256 i = 0; i < lotteryConfig.playersLimit; i = i.add(1)) {
             address player = lotteryPlayers[i];
             // if (address(msg.sender) == winnerAddresses[winnerIndexes[i]]) {
-                for(uint256 j = 0; j < lotteryConfig.numOfWinners; j = j.add(1)) {
+            for (uint256 j = 0; j < lotteryConfig.numOfWinners; j = j.add(1)) {
                 address winner = winnerAddresses[winnerIndexes[j]];
-                
-                if(winner != address(0) && winner == player) {
+
+                if (winner != address(0) && winner == player) {
                     isWinner = true;
                     break;
                 }
-                
-                }
-                
-                 if(isWinner) {
-                
+            }
+
+            if (isWinner) {
                 // _burn(address(msg.sender), lotteryConfig.registrationAmount);
                 // lotteryToken.burnFrom(msg.sender, lotteryConfig.registrationAmount);
-                if(isOnlyETHAccepted) {
-                    (bool status, ) = payable(player).call{value: rewardPoolAmount}("");
-                     require(status, "Amount not transferred to winner");
-                } else {
+                // if (isOnlyETHAccepted) {
+                //     (bool status, ) = payable(player).call{
+                //         value: rewardPoolAmount
+                //     }("");
+                //     require(status, "Amount not transferred to winner");
+                // } else {
                     buyToken.transfer(address(player), rewardPoolAmount);
-                }
+                // }
                 winnerAddresses[winnerIndexes[i]] = address(0);
-                } else {
-                    lotteryToken.mint(player, lotteryConfig.registrationAmount);
-                }
-                
-               isWinner = false; 
-                
+            } else {
+                lotteryToken.mint(player, lotteryConfig.registrationAmount);
+            }
+
+            isWinner = false;
         }
-        resetLottery();
+
+        // If the lottery is not paused, then reset lottery to be playable continously
+        if (!pauseLottery) {
+            resetLottery();
+        }
     }
 
     /**

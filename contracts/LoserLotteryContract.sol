@@ -1,9 +1,10 @@
-
 // File: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/security/ReentrancyGuard.sol
 
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.7.0;
+
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @dev Contract module that helps prevent reentrant calls to a function.
@@ -38,7 +39,7 @@ abstract contract ReentrancyGuard {
 
     uint256 private _status;
 
-    constructor () {
+    constructor() {
         _status = _NOT_ENTERED;
     }
 
@@ -63,11 +64,6 @@ abstract contract ReentrancyGuard {
         _status = _NOT_ENTERED;
     }
 }
-
-// File: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Address.sol
-
-
-pragma solidity ^0.7.0;
 
 /**
  * @dev Collection of functions related to the address type
@@ -97,7 +93,9 @@ library Address {
 
         uint256 size;
         // solhint-disable-next-line no-inline-assembly
-        assembly { size := extcodesize(account) }
+        assembly {
+            size := extcodesize(account)
+        }
         return size > 0;
     }
 
@@ -118,11 +116,17 @@ library Address {
      * https://solidity.readthedocs.io/en/v0.5.11/security-considerations.html#use-the-checks-effects-interactions-pattern[checks-effects-interactions pattern].
      */
     function sendValue(address payable recipient, uint256 amount) internal {
-        require(address(this).balance >= amount, "Address: insufficient balance");
+        require(
+            address(this).balance >= amount,
+            "Address: insufficient balance"
+        );
 
         // solhint-disable-next-line avoid-low-level-calls, avoid-call-value
-        (bool success, ) = recipient.call{ value: amount }("");
-        require(success, "Address: unable to send value, recipient may have reverted");
+        (bool success, ) = recipient.call{value: amount}("");
+        require(
+            success,
+            "Address: unable to send value, recipient may have reverted"
+        );
     }
 
     /**
@@ -143,8 +147,11 @@ library Address {
      *
      * _Available since v3.1._
      */
-    function functionCall(address target, bytes memory data) internal returns (bytes memory) {
-      return functionCall(target, data, "Address: low-level call failed");
+    function functionCall(address target, bytes memory data)
+        internal
+        returns (bytes memory)
+    {
+        return functionCall(target, data, "Address: low-level call failed");
     }
 
     /**
@@ -153,7 +160,11 @@ library Address {
      *
      * _Available since v3.1._
      */
-    function functionCall(address target, bytes memory data, string memory errorMessage) internal returns (bytes memory) {
+    function functionCall(
+        address target,
+        bytes memory data,
+        string memory errorMessage
+    ) internal returns (bytes memory) {
         return functionCallWithValue(target, data, 0, errorMessage);
     }
 
@@ -168,8 +179,18 @@ library Address {
      *
      * _Available since v3.1._
      */
-    function functionCallWithValue(address target, bytes memory data, uint256 value) internal returns (bytes memory) {
-        return functionCallWithValue(target, data, value, "Address: low-level call with value failed");
+    function functionCallWithValue(
+        address target,
+        bytes memory data,
+        uint256 value
+    ) internal returns (bytes memory) {
+        return
+            functionCallWithValue(
+                target,
+                data,
+                value,
+                "Address: low-level call with value failed"
+            );
     }
 
     /**
@@ -178,12 +199,22 @@ library Address {
      *
      * _Available since v3.1._
      */
-    function functionCallWithValue(address target, bytes memory data, uint256 value, string memory errorMessage) internal returns (bytes memory) {
-        require(address(this).balance >= value, "Address: insufficient balance for call");
+    function functionCallWithValue(
+        address target,
+        bytes memory data,
+        uint256 value,
+        string memory errorMessage
+    ) internal returns (bytes memory) {
+        require(
+            address(this).balance >= value,
+            "Address: insufficient balance for call"
+        );
         require(isContract(target), "Address: call to non-contract");
 
         // solhint-disable-next-line avoid-low-level-calls
-        (bool success, bytes memory returndata) = target.call{ value: value }(data);
+        (bool success, bytes memory returndata) = target.call{value: value}(
+            data
+        );
         return _verifyCallResult(success, returndata, errorMessage);
     }
 
@@ -193,8 +224,17 @@ library Address {
      *
      * _Available since v3.3._
      */
-    function functionStaticCall(address target, bytes memory data) internal view returns (bytes memory) {
-        return functionStaticCall(target, data, "Address: low-level static call failed");
+    function functionStaticCall(address target, bytes memory data)
+        internal
+        view
+        returns (bytes memory)
+    {
+        return
+            functionStaticCall(
+                target,
+                data,
+                "Address: low-level static call failed"
+            );
     }
 
     /**
@@ -203,7 +243,11 @@ library Address {
      *
      * _Available since v3.3._
      */
-    function functionStaticCall(address target, bytes memory data, string memory errorMessage) internal view returns (bytes memory) {
+    function functionStaticCall(
+        address target,
+        bytes memory data,
+        string memory errorMessage
+    ) internal view returns (bytes memory) {
         require(isContract(target), "Address: static call to non-contract");
 
         // solhint-disable-next-line avoid-low-level-calls
@@ -217,8 +261,16 @@ library Address {
      *
      * _Available since v3.4._
      */
-    function functionDelegateCall(address target, bytes memory data) internal returns (bytes memory) {
-        return functionDelegateCall(target, data, "Address: low-level delegate call failed");
+    function functionDelegateCall(address target, bytes memory data)
+        internal
+        returns (bytes memory)
+    {
+        return
+            functionDelegateCall(
+                target,
+                data,
+                "Address: low-level delegate call failed"
+            );
     }
 
     /**
@@ -227,7 +279,11 @@ library Address {
      *
      * _Available since v3.4._
      */
-    function functionDelegateCall(address target, bytes memory data, string memory errorMessage) internal returns (bytes memory) {
+    function functionDelegateCall(
+        address target,
+        bytes memory data,
+        string memory errorMessage
+    ) internal returns (bytes memory) {
         require(isContract(target), "Address: delegate call to non-contract");
 
         // solhint-disable-next-line avoid-low-level-calls
@@ -235,7 +291,11 @@ library Address {
         return _verifyCallResult(success, returndata, errorMessage);
     }
 
-    function _verifyCallResult(bool success, bytes memory returndata, string memory errorMessage) private pure returns(bytes memory) {
+    function _verifyCallResult(
+        bool success,
+        bytes memory returndata,
+        string memory errorMessage
+    ) private pure returns (bytes memory) {
         if (success) {
             return returndata;
         } else {
@@ -255,67 +315,99 @@ library Address {
     }
 }
 
-// File: browser/VRFRequestIDBase.sol
-
-pragma solidity ^0.7.0;
 
 contract VRFRequestIDBase {
+    /**
+     * @notice returns the seed which is actually input to the VRF coordinator
+     *
+     * @dev To prevent repetition of VRF output due to repetition of the
+     * @dev user-supplied seed, that seed is combined in a hash with the
+     * @dev user-specific nonce, and the address of the consuming contract. The
+     * @dev risk of repetition is mostly mitigated by inclusion of a blockhash in
+     * @dev the final seed, but the nonce does protect against repetition in
+     * @dev requests which are included in a single block.
+     *
+     * @param _userSeed VRF seed input provided by user
+     * @param _requester Address of the requesting contract
+     * @param _nonce User-specific nonce at the time of the request
+     */
+    function makeVRFInputSeed(
+        bytes32 _keyHash,
+        uint256 _userSeed,
+        address _requester,
+        uint256 _nonce
+    ) internal pure returns (uint256) {
+        return
+            uint256(
+                keccak256(abi.encode(_keyHash, _userSeed, _requester, _nonce))
+            );
+    }
 
-  /**
-   * @notice returns the seed which is actually input to the VRF coordinator
-   *
-   * @dev To prevent repetition of VRF output due to repetition of the
-   * @dev user-supplied seed, that seed is combined in a hash with the
-   * @dev user-specific nonce, and the address of the consuming contract. The
-   * @dev risk of repetition is mostly mitigated by inclusion of a blockhash in
-   * @dev the final seed, but the nonce does protect against repetition in
-   * @dev requests which are included in a single block.
-   *
-   * @param _userSeed VRF seed input provided by user
-   * @param _requester Address of the requesting contract
-   * @param _nonce User-specific nonce at the time of the request
-   */
-  function makeVRFInputSeed(bytes32 _keyHash, uint256 _userSeed,
-    address _requester, uint256 _nonce)
-    internal pure returns (uint256)
-  {
-    return  uint256(keccak256(abi.encode(_keyHash, _userSeed, _requester, _nonce)));
-  }
-
-  /**
-   * @notice Returns the id for this request
-   * @param _keyHash The serviceAgreement ID to be used for this request
-   * @param _vRFInputSeed The seed to be passed directly to the VRF
-   * @return The id for this request
-   *
-   * @dev Note that _vRFInputSeed is not the seed passed by the consuming
-   * @dev contract, but the one generated by makeVRFInputSeed
-   */
-  function makeRequestId(
-    bytes32 _keyHash, uint256 _vRFInputSeed) internal pure returns (bytes32) {
-    return keccak256(abi.encodePacked(_keyHash, _vRFInputSeed));
-  }
+    /**
+     * @notice Returns the id for this request
+     * @param _keyHash The serviceAgreement ID to be used for this request
+     * @param _vRFInputSeed The seed to be passed directly to the VRF
+     * @return The id for this request
+     *
+     * @dev Note that _vRFInputSeed is not the seed passed by the consuming
+     * @dev contract, but the one generated by makeVRFInputSeed
+     */
+    function makeRequestId(bytes32 _keyHash, uint256 _vRFInputSeed)
+        internal
+        pure
+        returns (bytes32)
+    {
+        return keccak256(abi.encodePacked(_keyHash, _vRFInputSeed));
+    }
 }
 // File: browser/LinkTokenInterface.sol
 
 pragma solidity ^0.7.2;
 
 interface LinkTokenInterface {
-  function allowance(address owner, address spender) external view returns (uint256 remaining);
-  function approve(address spender, uint256 value) external returns (bool success);
-  function balanceOf(address owner) external view returns (uint256 balance);
-  function decimals() external view returns (uint8 decimalPlaces);
-  function decreaseApproval(address spender, uint256 addedValue) external returns (bool success);
-  function increaseApproval(address spender, uint256 subtractedValue) external;
-  function name() external view returns (string memory tokenName);
-  function symbol() external view returns (string memory tokenSymbol);
-  function totalSupply() external view returns (uint256 totalTokensIssued);
-  function transfer(address to, uint256 value) external returns (bool success);
-  function transferAndCall(address to, uint256 value, bytes calldata data) external returns (bool success);
-  function transferFrom(address from, address to, uint256 value) external returns (bool success);
+    function allowance(address owner, address spender)
+        external
+        view
+        returns (uint256 remaining);
+
+    function approve(address spender, uint256 value)
+        external
+        returns (bool success);
+
+    function balanceOf(address owner) external view returns (uint256 balance);
+
+    function decimals() external view returns (uint8 decimalPlaces);
+
+    function decreaseApproval(address spender, uint256 addedValue)
+        external
+        returns (bool success);
+
+    function increaseApproval(address spender, uint256 subtractedValue)
+        external;
+
+    function name() external view returns (string memory tokenName);
+
+    function symbol() external view returns (string memory tokenSymbol);
+
+    function totalSupply() external view returns (uint256 totalTokensIssued);
+
+    function transfer(address to, uint256 value)
+        external
+        returns (bool success);
+
+    function transferAndCall(
+        address to,
+        uint256 value,
+        bytes calldata data
+    ) external returns (bool success);
+
+    function transferFrom(
+        address from,
+        address to,
+        uint256 value
+    ) external returns (bool success);
 }
 // File: browser/SafeMath.sol
-
 
 pragma solidity ^0.7.2;
 
@@ -336,7 +428,11 @@ library SafeMath {
     /**
      * @dev Returns the addition of two unsigned integers, with an overflow flag.
      */
-    function tryAdd(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+    function tryAdd(uint256 a, uint256 b)
+        internal
+        pure
+        returns (bool, uint256)
+    {
         uint256 c = a + b;
         if (c < a) return (false, 0);
         return (true, c);
@@ -345,7 +441,11 @@ library SafeMath {
     /**
      * @dev Returns the substraction of two unsigned integers, with an overflow flag.
      */
-    function trySub(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+    function trySub(uint256 a, uint256 b)
+        internal
+        pure
+        returns (bool, uint256)
+    {
         if (b > a) return (false, 0);
         return (true, a - b);
     }
@@ -353,7 +453,11 @@ library SafeMath {
     /**
      * @dev Returns the multiplication of two unsigned integers, with an overflow flag.
      */
-    function tryMul(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+    function tryMul(uint256 a, uint256 b)
+        internal
+        pure
+        returns (bool, uint256)
+    {
         // Gas optimization: this is cheaper than requiring 'a' not being zero, but the
         // benefit is lost if 'b' is also tested.
         // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522
@@ -366,7 +470,11 @@ library SafeMath {
     /**
      * @dev Returns the division of two unsigned integers, with a division by zero flag.
      */
-    function tryDiv(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+    function tryDiv(uint256 a, uint256 b)
+        internal
+        pure
+        returns (bool, uint256)
+    {
         if (b == 0) return (false, 0);
         return (true, a / b);
     }
@@ -374,7 +482,11 @@ library SafeMath {
     /**
      * @dev Returns the remainder of dividing two unsigned integers, with a division by zero flag.
      */
-    function tryMod(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+    function tryMod(uint256 a, uint256 b)
+        internal
+        pure
+        returns (bool, uint256)
+    {
         if (b == 0) return (false, 0);
         return (true, a % b);
     }
@@ -474,7 +586,11 @@ library SafeMath {
      *
      * - Subtraction cannot overflow.
      */
-    function sub(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
+    function sub(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
         require(b <= a, errorMessage);
         return a - b;
     }
@@ -494,7 +610,11 @@ library SafeMath {
      *
      * - The divisor cannot be zero.
      */
-    function div(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
+    function div(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
         require(b > 0, errorMessage);
         return a / b;
     }
@@ -514,7 +634,11 @@ library SafeMath {
      *
      * - The divisor cannot be zero.
      */
-    function mod(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
+    function mod(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
         require(b > 0, errorMessage);
         return a % b;
     }
@@ -523,9 +647,6 @@ library SafeMath {
 // File: browser/VRFConsumerBase.sol
 
 pragma solidity ^0.7.2;
-
-
-
 
 /** ****************************************************************************
  * @notice Interface for contracts using VRF randomness
@@ -621,99 +742,111 @@ pragma solidity ^0.7.2;
  * @dev until it calls responds to a request.
  */
 abstract contract VRFConsumerBase is VRFRequestIDBase {
+    using SafeMath for uint256;
 
-  using SafeMath for uint256;
+    /**
+     * @notice fulfillRandomness handles the VRF response. Your contract must
+     * @notice implement it. See "SECURITY CONSIDERATIONS" above for important
+     * @notice principles to keep in mind when implementing your fulfillRandomness
+     * @notice method.
+     *
+     * @dev VRFConsumerBase expects its subcontracts to have a method with this
+     * @dev signature, and will call it once it has verified the proof
+     * @dev associated with the randomness. (It is triggered via a call to
+     * @dev rawFulfillRandomness, below.)
+     *
+     * @param requestId The Id initially returned by requestRandomness
+     * @param randomness the VRF output
+     */
+    function fulfillRandomness(bytes32 requestId, uint256 randomness)
+        internal
+        virtual;
 
-  /**
-   * @notice fulfillRandomness handles the VRF response. Your contract must
-   * @notice implement it. See "SECURITY CONSIDERATIONS" above for important
-   * @notice principles to keep in mind when implementing your fulfillRandomness
-   * @notice method.
-   *
-   * @dev VRFConsumerBase expects its subcontracts to have a method with this
-   * @dev signature, and will call it once it has verified the proof
-   * @dev associated with the randomness. (It is triggered via a call to
-   * @dev rawFulfillRandomness, below.)
-   *
-   * @param requestId The Id initially returned by requestRandomness
-   * @param randomness the VRF output
-   */
-  function fulfillRandomness(bytes32 requestId, uint256 randomness)
-    internal virtual;
+    /**
+     * @notice requestRandomness initiates a request for VRF output given _seed
+     *
+     * @dev The fulfillRandomness method receives the output, once it's provided
+     * @dev by the Oracle, and verified by the vrfCoordinator.
+     *
+     * @dev The _keyHash must already be registered with the VRFCoordinator, and
+     * @dev the _fee must exceed the fee specified during registration of the
+     * @dev _keyHash.
+     *
+     * @dev The _seed parameter is vestigial, and is kept only for API
+     * @dev compatibility with older versions. It can't *hurt* to mix in some of
+     * @dev your own randomness, here, but it's not necessary because the VRF
+     * @dev oracle will mix the hash of the block containing your request into the
+     * @dev VRF seed it ultimately uses.
+     *
+     * @param _keyHash ID of public key against which randomness is generated
+     * @param _fee The amount of LINK to send with the request
+     * @param _seed seed mixed into the input of the VRF.
+     *
+     * @return requestId unique ID for this request
+     *
+     * @dev The returned requestId can be used to distinguish responses to
+     * @dev concurrent requests. It is passed as the first argument to
+     * @dev fulfillRandomness.
+     */
+    function requestRandomness(
+        bytes32 _keyHash,
+        uint256 _fee,
+        uint256 _seed
+    ) internal returns (bytes32 requestId) {
+        LINK.transferAndCall(vrfCoordinator, _fee, abi.encode(_keyHash, _seed));
+        // This is the seed passed to VRFCoordinator. The oracle will mix this with
+        // the hash of the block containing this request to obtain the seed/input
+        // which is finally passed to the VRF cryptographic machinery.
+        uint256 vRFSeed = makeVRFInputSeed(
+            _keyHash,
+            _seed,
+            address(this),
+            nonces[_keyHash]
+        );
+        // nonces[_keyHash] must stay in sync with
+        // VRFCoordinator.nonces[_keyHash][this], which was incremented by the above
+        // successful LINK.transferAndCall (in VRFCoordinator.randomnessRequest).
+        // This provides protection against the user repeating their input seed,
+        // which would result in a predictable/duplicate output, if multiple such
+        // requests appeared in the same block.
+        nonces[_keyHash] = nonces[_keyHash].add(1);
+        return makeRequestId(_keyHash, vRFSeed);
+    }
 
-  /**
-   * @notice requestRandomness initiates a request for VRF output given _seed
-   *
-   * @dev The fulfillRandomness method receives the output, once it's provided
-   * @dev by the Oracle, and verified by the vrfCoordinator.
-   *
-   * @dev The _keyHash must already be registered with the VRFCoordinator, and
-   * @dev the _fee must exceed the fee specified during registration of the
-   * @dev _keyHash.
-   *
-   * @dev The _seed parameter is vestigial, and is kept only for API
-   * @dev compatibility with older versions. It can't *hurt* to mix in some of
-   * @dev your own randomness, here, but it's not necessary because the VRF
-   * @dev oracle will mix the hash of the block containing your request into the
-   * @dev VRF seed it ultimately uses.
-   *
-   * @param _keyHash ID of public key against which randomness is generated
-   * @param _fee The amount of LINK to send with the request
-   * @param _seed seed mixed into the input of the VRF.
-   *
-   * @return requestId unique ID for this request
-   *
-   * @dev The returned requestId can be used to distinguish responses to
-   * @dev concurrent requests. It is passed as the first argument to
-   * @dev fulfillRandomness.
-   */
-  function requestRandomness(bytes32 _keyHash, uint256 _fee, uint256 _seed)
-    internal returns (bytes32 requestId)
-  {
-    LINK.transferAndCall(vrfCoordinator, _fee, abi.encode(_keyHash, _seed));
-    // This is the seed passed to VRFCoordinator. The oracle will mix this with
-    // the hash of the block containing this request to obtain the seed/input
-    // which is finally passed to the VRF cryptographic machinery.
-    uint256 vRFSeed  = makeVRFInputSeed(_keyHash, _seed, address(this), nonces[_keyHash]);
-    // nonces[_keyHash] must stay in sync with
-    // VRFCoordinator.nonces[_keyHash][this], which was incremented by the above
-    // successful LINK.transferAndCall (in VRFCoordinator.randomnessRequest).
-    // This provides protection against the user repeating their input seed,
-    // which would result in a predictable/duplicate output, if multiple such
-    // requests appeared in the same block.
-    nonces[_keyHash] = nonces[_keyHash].add(1);
-    return makeRequestId(_keyHash, vRFSeed);
-  }
+    LinkTokenInterface internal immutable LINK;
+    address private immutable vrfCoordinator;
 
-  LinkTokenInterface immutable internal LINK;
-  address immutable private vrfCoordinator;
+    // Nonces for each VRF key from which randomness has been requested.
+    //
+    // Must stay in sync with VRFCoordinator[_keyHash][this]
+    mapping(bytes32 => uint256) /* keyHash */ /* nonce */
+        private nonces;
 
-  // Nonces for each VRF key from which randomness has been requested.
-  //
-  // Must stay in sync with VRFCoordinator[_keyHash][this]
-  mapping(bytes32 /* keyHash */ => uint256 /* nonce */) private nonces;
+    /**
+     * @param _vrfCoordinator address of VRFCoordinator contract
+     * @param _link address of LINK token contract
+     *
+     * @dev https://docs.chain.link/docs/link-token-contracts
+     */
+    constructor(address _vrfCoordinator, address _link) {
+        vrfCoordinator = _vrfCoordinator;
+        LINK = LinkTokenInterface(_link);
+    }
 
-  /**
-   * @param _vrfCoordinator address of VRFCoordinator contract
-   * @param _link address of LINK token contract
-   *
-   * @dev https://docs.chain.link/docs/link-token-contracts
-   */
-  constructor(address _vrfCoordinator, address _link)  {
-    vrfCoordinator = _vrfCoordinator;
-    LINK = LinkTokenInterface(_link);
-  }
-
-  // rawFulfillRandomness is called by VRFCoordinator when it receives a valid VRF
-  // proof. rawFulfillRandomness then calls fulfillRandomness, after validating
-  // the origin of the call
-  function rawFulfillRandomness(bytes32 requestId, uint256 randomness) external {
-    require(msg.sender == vrfCoordinator, "Only VRFCoordinator can fulfill");
-    fulfillRandomness(requestId, randomness);
-  }
+    // rawFulfillRandomness is called by VRFCoordinator when it receives a valid VRF
+    // proof. rawFulfillRandomness then calls fulfillRandomness, after validating
+    // the origin of the call
+    function rawFulfillRandomness(bytes32 requestId, uint256 randomness)
+        external
+    {
+        require(
+            msg.sender == vrfCoordinator,
+            "Only VRFCoordinator can fulfill"
+        );
+        fulfillRandomness(requestId, randomness);
+    }
 }
 // File: browser/IERC20.sol
-
 
 pragma solidity >=0.6.0 <0.8.0;
 
@@ -738,7 +871,9 @@ interface IERC20 {
      *
      * Emits a {Transfer} event.
      */
-    function transfer(address recipient, uint256 amount) external returns (bool);
+    function transfer(address recipient, uint256 amount)
+        external
+        returns (bool);
 
     /**
      * @dev Returns the remaining number of tokens that `spender` will be
@@ -747,7 +882,10 @@ interface IERC20 {
      *
      * This value changes when {approve} or {transferFrom} are called.
      */
-    function allowance(address owner, address spender) external view returns (uint256);
+    function allowance(address owner, address spender)
+        external
+        view
+        returns (uint256);
 
     /**
      * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.
@@ -767,7 +905,7 @@ interface IERC20 {
 
     function mint(address receipient, uint256 amount) external returns (bool);
 
-    function burnFrom(address from, uint256 amount) external ;
+    function burnFrom(address from, uint256 amount) external;
 
     /**
      * @dev Moves `amount` tokens from `sender` to `recipient` using the
@@ -778,7 +916,11 @@ interface IERC20 {
      *
      * Emits a {Transfer} event.
      */
-    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) external returns (bool);
 
     /**
      * @dev Emitted when `value` tokens are moved from one account (`from`) to
@@ -792,19 +934,17 @@ interface IERC20 {
      * @dev Emitted when the allowance of a `spender` for an `owner` is set by
      * a call to {approve}. `value` is the new allowance.
      */
-    event Approval(address indexed owner, address indexed spender, uint256 value);
+    event Approval(
+        address indexed owner,
+        address indexed spender,
+        uint256 value
+    );
 }
 // File: browser/LoserLotteryContract.sol
 
-pragma solidity ^0.7.2;
+pragma solidity 0.7.2;
 
-
-
-
-
-
-
-contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard {
+contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
     using Address for address;
     using SafeMath for uint256;
 
@@ -813,14 +953,17 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard {
         uint256 playersLimit;
         uint256 registrationAmount;
         uint256 adminFeePercentage;
-        // address lotteryTokenAddress;
         uint256 randomSeed;
         uint256 startedAt;
     }
 
     address[] public lotteryPlayers;
     address public adminAddress;
-    enum LotteryStatus {NOTSTARTED, INPROGRESS, CLOSED}
+    enum LotteryStatus {
+        NOTSTARTED,
+        INPROGRESS,
+        CLOSED
+    }
     mapping(uint256 => address) public winnerAddresses;
     uint256[] public winnerIndexes;
     uint256 public totalLotteryPool;
@@ -832,13 +975,14 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard {
     IERC20 distributionToken;
     uint256 distributionAmount;
     LotteryStatus public lotteryStatus;
-    LotteryConfig lotteryConfig;
+    LotteryConfig public lotteryConfig;
 
     bytes32 internal keyHash;
     uint256 internal fee;
     uint256 internal randomResult;
     bool internal areWinnersGenerated;
     bool internal isRandomNumberGenerated;
+    bool public pauseLottery;
 
     event MaxParticipationCompleted(address indexed _from);
 
@@ -849,7 +993,6 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard {
     event LotterySettled();
 
     event LotteryStarted(
-        // address indexed lotteryTokenAddress,
         uint256 playersLimit,
         uint256 numOfWinners,
         uint256 registrationAmount,
@@ -871,13 +1014,17 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard {
      * configuration of VRF Smart Contract. They can only be set once during
      * construction.
      */
-    constructor(IERC20 _distributionToken, uint256 _distributionAmount, IERC20 _lotteryToken)
+    constructor(
+        IERC20 _distributionToken,
+        uint256 _distributionAmount,
+        IERC20 _lotteryToken
+    )
         public
         VRFConsumerBase(
             0xdD3782915140c8f3b190B5D67eAc6dc5760C46E9, // VRF Coordinator
             0xa36085F69e2889c224210F603D836748e7dC0088 // LINK Token
         )
-        // ERC20("LotteryTokens", "LOT") //Internal LOT ERC20 token
+        Ownable()
     {
         adminAddress = msg.sender;
         lotteryStatus = LotteryStatus.NOTSTARTED;
@@ -890,23 +1037,15 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard {
         lotteryToken = _lotteryToken; // ERC20 contract
         distributionAmount = _distributionAmount;
     }
-    
-    modifier onlyAdmin() {
-        require(msg.sender == adminAddress, "Only admin can perform this operation");
-        _;
-    }
-    
-    function changeAdmin(address _newAdmin) public onlyAdmin {
-        require(_newAdmin != address(0), "Invalid address");
-        adminAddress = _newAdmin;
-        
-    }
-    
-    function changeDistributionAmount(uint256 _newAmount) public onlyAdmin {
+
+    function changeDistributionAmount(uint256 _newAmount) public onlyOwner {
         distributionAmount = _newAmount;
     }
-    
-    function changeDistributionToken(IERC20 _newDistributionToken) public onlyAdmin {
+
+    function changeDistributionToken(IERC20 _newDistributionToken)
+        public
+        onlyOwner
+    {
         distributionToken = _newDistributionToken;
     }
 
@@ -1034,10 +1173,11 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard {
         totalLotteryPool = totalLotteryPool.add(
             lotteryConfig.registrationAmount
         );
-        
+
         if (lotteryPlayers.length == lotteryConfig.playersLimit) {
             emit MaxParticipationCompleted(msg.sender);
             getRandomNumber(lotteryConfig.randomSeed);
+            settleLottery();
         }
         return (lotteryPlayers.length).sub(1);
     }
@@ -1055,7 +1195,7 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard {
      * - The random number has been generated
      * - The Lottery is in progress.
      */
-    function settleLottery() public {
+    function settleLottery() private {
         require(
             isRandomNumberGenerated,
             "Lottery Configuration still in progress. Please try in a short while"
@@ -1099,6 +1239,17 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard {
         emit LotterySettled();
     }
 
+    function getWinningAmount() public view returns (uint256) {
+        uint256 adminFees = (
+            (totalLotteryPool.mul(lotteryConfig.adminFeePercentage)).div(100)
+        );
+        uint256 rewardPool = (totalLotteryPool.sub(adminFees)).div(
+            lotteryConfig.numOfWinners
+        );
+
+        return rewardPoolAmount;
+    }
+
     /**
      * @dev The winners of the lottery can call this function to transfer their winnings
      * from the lottery contract to their own address. The winners will need to burn their
@@ -1110,21 +1261,45 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard {
      * - The Lottery is settled i.e. the lotteryStatus is CLOSED.
      */
     function collectRewards() private nonReentrant {
-        require(
-            lotteryStatus == LotteryStatus.CLOSED,
-            "The Lottery is not settled. Please try in a short while."
-        );
+        // require(
+        //     lotteryStatus == LotteryStatus.CLOSED,
+        //     "The Lottery is not settled. Please try in a short while."
+        // );
+        bool isWinner = false;
         for (uint256 i = 0; i < lotteryConfig.numOfWinners; i = i.add(1)) {
-            if (address(msg.sender) == winnerAddresses[winnerIndexes[i]]) {
+            address player = lotteryPlayers[i];
+            // if (address(msg.sender) == winnerAddresses[winnerIndexes[i]]) {
+            for (uint256 j = 0; j < lotteryConfig.numOfWinners; j = j.add(1)) {
+                address winner = winnerAddresses[winnerIndexes[j]];
+
+                if (winner != address(0) && winner == player) {
+                    isWinner = true;
+                    break;
+                }
+            }
+
+            if (isWinner) {
                 // _burn(address(msg.sender), lotteryConfig.registrationAmount);
                 // lotteryToken.burnFrom(msg.sender, lotteryConfig.registrationAmount);
-                // buyToken.transfer(address(msg.sender), rewardPoolAmount);
-                distributionToken.transfer(msg.sender, distributionAmount);
+                // if (isOnlyETHAccepted) {
+                //     (bool status, ) = payable(player).call{
+                //         value: rewardPoolAmount
+                //     }("");
+                //     require(status, "Amount not transferred to winner");
+                // } else {
+                    distributionToken.transfer(address(player), rewardPoolAmount);
+                // }
                 winnerAddresses[winnerIndexes[i]] = address(0);
-            }
+            } 
+
+            isWinner = false;
         }
 
-        resetLottery();
+        // If the lottery is not paused, then reset lottery to be playable continously
+        if (!pauseLottery) {
+            resetLottery();
+        }
+
     }
 
     /**
