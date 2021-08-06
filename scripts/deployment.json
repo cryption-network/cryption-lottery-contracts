@@ -1,0 +1,10 @@
+{
+  "mumbai": {
+    "lottery": "0x30a78fB5846E3867Bb13DFF89fDa1347A5bFc2b3",
+    "lotteryERC20": "0x50EAbe163DBcb65D90556675E8ea780364A810FE"
+  },
+  "matic": {
+    "lottery": "",
+    "lotteryERC20": ""
+  }
+}

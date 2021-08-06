@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-
 contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
     using Address for address;
     using SafeMath for uint256;
@@ -16,7 +15,6 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         uint256 playersLimit;
         uint256 registrationAmount;
         uint256 adminFeePercentage;
-        // address lotteryTokenAddress;
         uint256 randomSeed;
         uint256 startedAt;
     }
@@ -34,10 +32,10 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
     uint256 public adminFeesAmount;
     uint256 public rewardPoolAmount;
 
-    IERC20 lotteryToken;
-    IERC20 buyToken;
+    IERC20 public lotteryToken;
+    IERC20 public buyToken;
     LotteryStatus public lotteryStatus;
-    LotteryConfig lotteryConfig;
+    LotteryConfig public lotteryConfig;
 
     bytes32 internal keyHash;
     uint256 internal fee;
@@ -85,16 +83,16 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
     constructor(IERC20 _buyToken, IERC20 _lotteryToken)
         public
         VRFConsumerBase(
-            0xdD3782915140c8f3b190B5D67eAc6dc5760C46E9, // VRF Coordinator
-            0xa36085F69e2889c224210F603D836748e7dC0088 // LINK Token
+            0x8C7382F9D8f56b33781fE506E897a4F1e2d17255, // VRF Coordinator
+            0x326C977E6efc84E512bB9C30f76E30c160eD06FB // LINK Token
         )
         Ownable()
     {
         adminAddress = msg.sender;
         lotteryStatus = LotteryStatus.NOTSTARTED;
         totalLotteryPool = 0;
-        keyHash = 0x6c3699283bda56ad74f6b855546325b68d482e983852a7a82979cc4807b641f4;
-        fee = 0.1 * 10**18; // 0.1 LINK
+        keyHash = 0x6e75b569a01ef56d18cab6a8e71e6600d6ce853834d4a5748b720d06f878b3a4;
+        fee = 0.0001 * 10**18; // 0.0001 LINK
         areWinnersGenerated = false;
         isRandomNumberGenerated = false;
         buyToken = _buyToken; // ERC20 contract
@@ -116,6 +114,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
             "Starting the Lottery requires Admin Access"
         );
         pauseLottery = false;
+        resetLottery();
     }
 
     /**
@@ -184,10 +183,10 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
             lotteryStatus == LotteryStatus.NOTSTARTED,
             "Error: An existing lottery is in progress"
         );
-        // require(
-        //     numOfWinners <= playersLimit.div(2),
-        //     "Number of winners should be less than or equal to half the number of players"
-        // );
+        require(
+            numOfWinners <= playersLimit.div(2),
+            "Number of winners should be less than or equal to half the number of players"
+        );
         lotteryConfig = LotteryConfig(
             numOfWinners,
             playersLimit,
@@ -198,7 +197,6 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
             block.timestamp
         );
         lotteryStatus = LotteryStatus.INPROGRESS;
-        // lotteryToken = IERC20(lotteryTokenAddress);
         emit LotteryStarted(
             // lotteryTokenAddress,
             playersLimit,
@@ -227,29 +225,32 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
      * - Number of players allowed to enter in the lottery should be
      *   less than or equal to the allowed players `lotteryConfig.playersLimit`.
      */
-    function enterLottery() public payable returns (uint256) {
+    function enterLottery() public returns (uint256) {
         require(
             lotteryPlayers.length < lotteryConfig.playersLimit,
             "Max Participation for the Lottery Reached"
         );
+
+        // require(
+        //     lotteryPlayers.length == 0 && !pauseLottery,
+        //     "Lottery is paused"
+        // );
+
+        if (lotteryPlayers.length == 0) {
+            require(!pauseLottery, "Lottery is paused");
+        }
+
         require(
             lotteryStatus == LotteryStatus.INPROGRESS,
             "The Lottery is not started or closed"
         );
         lotteryPlayers.push(msg.sender);
 
-        // if (isOnlyETHAccepted) {
-        //     require(
-        //         msg.value == lotteryConfig.registrationAmount,
-        //         "Insufficent registration amount provided"
-        //     );
-        // } else {
         buyToken.transferFrom(
             msg.sender,
             address(this),
             lotteryConfig.registrationAmount
         );
-        // }
 
         totalLotteryPool = totalLotteryPool.add(
             lotteryConfig.registrationAmount
@@ -261,7 +262,6 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         if (lotteryPlayers.length == lotteryConfig.playersLimit) {
             // emit MaxParticipationCompleted(msg.sender); // this is not needed now
             getRandomNumber(lotteryConfig.randomSeed);
-            settleLottery();
         }
         return (lotteryPlayers.length).sub(1);
     }
@@ -279,7 +279,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
      * - The random number has been generated
      * - The Lottery is in progress.
      */
-    function settleLottery() private {
+    function settleLottery() public {
         require(
             isRandomNumberGenerated,
             "Lottery Configuration still in progress. Please try in a short while"
@@ -316,7 +316,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         rewardPoolAmount = (totalLotteryPool.sub(adminFeesAmount)).div(
             lotteryConfig.numOfWinners
         );
-        lotteryStatus = LotteryStatus.CLOSED; // ANalyze whether it is needed
+        lotteryStatus = LotteryStatus.CLOSED;
 
         // if (isOnlyETHAccepted) {
         //     (bool status, ) = payable(adminAddress).call{
@@ -327,16 +327,23 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         buyToken.transfer(adminAddress, adminFeesAmount);
         // }
 
+        emit LotterySettled(
+            rewardPoolAmount,
+            lotteryConfig.numOfWinners,
+            adminFeesAmount
+        );
         collectRewards();
-
-        emit LotterySettled(rewardPoolAmount, lotteryConfig.numOfWinners, adminFeesAmount);
     }
 
     function getWinningAmount() public view returns (uint256) {
-        uint256 adminFees = (
-            (totalLotteryPool.mul(lotteryConfig.adminFeePercentage)).div(100)
+        uint256 expectedTotalLotteryPool = lotteryConfig.playersLimit.mul(
+            lotteryConfig.registrationAmount
         );
-        uint256 rewardPool = (totalLotteryPool.sub(adminFees)).div(
+        uint256 adminFees = (
+            (expectedTotalLotteryPool.mul(lotteryConfig.adminFeePercentage))
+                .div(100)
+        );
+        uint256 rewardPool = (expectedTotalLotteryPool.sub(adminFees)).div(
             lotteryConfig.numOfWinners
         );
 
@@ -379,6 +386,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
 
                 if (winner != address(0) && winner == player) {
                     isWinner = true;
+                    winnerAddresses[winnerIndexes[j]] = address(0);
                     break;
                 }
             }
@@ -392,9 +400,8 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
                 //     }("");
                 //     require(status, "Amount not transferred to winner");
                 // } else {
-                    buyToken.transfer(address(player), rewardPoolAmount);
+                buyToken.transfer(address(player), rewardPoolAmount);
                 // }
-                winnerAddresses[winnerIndexes[i]] = address(0);
             } else {
                 lotteryToken.mint(player, lotteryConfig.registrationAmount);
             }
@@ -402,10 +409,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
             isWinner = false;
         }
 
-        // If the lottery is not paused, then reset lottery to be playable continously
-        if (!pauseLottery) {
-            resetLottery();
-        }
+        resetLottery();
     }
 
     /**
@@ -427,6 +431,15 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
             }
             return randomBlockchainNumber.sub(randomness);
         }
+    }
+
+    /**
+     * It can be called by admin to withdraw all the amount in case of
+     * any failure to play lottery. It will be distributed later on amongst the
+     * participants.
+     */
+    function emergencyWithdraw() external onlyOwner {
+        buyToken.transfer(msg.sender, buyToken.balanceOf(address(this)));
     }
 
     /**
@@ -453,9 +466,9 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         if (tokenBalance > 0) {
             buyToken.transfer(adminAddress, tokenBalance);
         }
-        delete lotteryConfig;
+        // delete lotteryConfig;
         delete randomResult;
-        delete lotteryStatus;
+        lotteryStatus = LotteryStatus.INPROGRESS;
         delete totalLotteryPool;
         delete adminFeesAmount;
         delete rewardPoolAmount;

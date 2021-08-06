@@ -4,7 +4,9 @@
   "description": "A Ethereum ERC20 based Smart Contract for conducting decentralized lottery",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "compile": "npx hardhat compile"
+    "compile": "npx hardhat compile",
+    "deploy_lottery_token": "npx hardhat run scripts/deploy_lottery_erc20.js --network mumbai",
+    "deploy_lottery": "npx hardhat run scripts/deploy_lottery_contract.js --network mumbai"
   },
   "license": "ISC",
   "dependencies": {
