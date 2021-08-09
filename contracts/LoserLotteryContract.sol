@@ -1053,18 +1053,18 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
     }
 
     function pauseNextLottery() public onlyOwner {
-        require(
-            msg.sender == adminAddress,
-            "Starting the Lottery requires Admin Access"
-        );
+        // require(
+        //     msg.sender == adminAddress,
+        //     "Starting the Lottery requires Admin Access"
+        // );
         pauseLottery = true;
     }
 
     function unPauseNextLottery() public onlyOwner {
-        require(
-            msg.sender == adminAddress,
-            "Starting the Lottery requires Admin Access"
-        );
+        // require(
+        //     msg.sender == adminAddress,
+        //     "Starting the Lottery requires Admin Access"
+        // );
         pauseLottery = false;
         // resetLottery();
     }
@@ -1200,9 +1200,9 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         );
 
         if (lotteryPlayers.length == lotteryConfig.playersLimit) {
-            emit MaxParticipationCompleted(msg.sender);
+            // emit MaxParticipationCompleted(msg.sender);
             getRandomNumber(lotteryConfig.randomSeed);
-            settleLottery();
+            // settleLottery();
         }
         return (lotteryPlayers.length).sub(1);
     }
@@ -1220,7 +1220,7 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
      * - The random number has been generated
      * - The Lottery is in progress.
      */
-    function settleLottery() public {
+    function settleLottery() external {
         require(
             isRandomNumberGenerated,
             "Lottery Configuration still in progress. Please try in a short while"

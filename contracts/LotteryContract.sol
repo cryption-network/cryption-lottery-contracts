@@ -44,7 +44,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
     bool internal isRandomNumberGenerated;
 
     bool public pauseLottery;
-    event MaxParticipationCompleted(address indexed _from);
+    // event MaxParticipationCompleted(address indexed _from);
 
     event RandomNumberGenerated(uint256 indexed randomness);
 
@@ -101,18 +101,18 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
     }
 
     function pauseNextLottery() public onlyOwner {
-        require(
-            msg.sender == adminAddress,
-            "Starting the Lottery requires Admin Access"
-        );
+        // require(
+        //     msg.sender == adminAddress,
+        //     "Starting the Lottery requires Admin Access"
+        // );
         pauseLottery = true;
     }
 
     function unPauseNextLottery() public onlyOwner {
-        require(
-            msg.sender == adminAddress,
-            "Starting the Lottery requires Admin Access"
-        );
+        // require(
+        //     msg.sender == adminAddress,
+        //     "Starting the Lottery requires Admin Access"
+        // );
         pauseLottery = false;
         // resetLottery();
     }
@@ -279,7 +279,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
      * - The random number has been generated
      * - The Lottery is in progress.
      */
-    function settleLottery() public {
+    function settleLottery() external {
         require(
             isRandomNumberGenerated,
             "Lottery Configuration still in progress. Please try in a short while"
