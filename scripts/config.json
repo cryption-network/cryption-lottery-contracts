@@ -1,11 +1,16 @@
 {
   "mumbai": {
-    "buyToken": "0x766F03e47674608cCcF7414f6c4DDF3d963Ae394",
+    "buyToken": "0x671b68fb02778D37a885699dA79c13Faf0d3C560",
     "lotteryToken": {
-      "address":"0x50EAbe163DBcb65D90556675E8ea780364A810FE",
-      "name":"CNT Rechance Token",
-      "symbol":"CRT",
-      "decimals":"18"
+      "address": "0x50EAbe163DBcb65D90556675E8ea780364A810FE",
+      "name": "CNT Rechance Token",
+      "symbol": "CRT",
+      "decimals": "18"
+    },
+    "loserLotteryToken": {
+      "distributionToken": "0x766F03e47674608cCcF7414f6c4DDF3d963Ae394",
+      "distributionAmount": "1000000000",
+      "lotteryToken": "0x50EAbe163DBcb65D90556675E8ea780364A810FE"
     }
   },
   "matic": {

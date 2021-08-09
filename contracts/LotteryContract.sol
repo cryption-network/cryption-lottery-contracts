@@ -56,6 +56,12 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         uint256 _adminFees
     );
 
+    event LotteryPaused();
+
+    event UnLotteryPaused();
+
+    event EmergencyWithdrawn();
+
     // LotterySettled(rewardPoolAmount, players, adminFeesAmount);
 
     event LotteryStarted(
@@ -106,6 +112,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         //     "Starting the Lottery requires Admin Access"
         // );
         pauseLottery = true;
+        emit LotteryPaused();
     }
 
     function unPauseNextLottery() public onlyOwner {
@@ -114,6 +121,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         //     "Starting the Lottery requires Admin Access"
         // );
         pauseLottery = false;
+        emit UnLotteryPaused();
         // resetLottery();
     }
 
@@ -440,6 +448,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
      */
     function emergencyWithdraw() external onlyOwner {
         buyToken.transfer(msg.sender, buyToken.balanceOf(address(this)));
+        emit EmergencyWithdrawn();
     }
 
     /**
