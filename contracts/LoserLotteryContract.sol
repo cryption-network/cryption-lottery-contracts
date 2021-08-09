@@ -1262,13 +1262,13 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         // adminFeesAmount = (
         //     (totalLotteryPool.mul(lotteryConfig.adminFeePercentage)).div(100)
         // );
-        rewardPoolAmount = (totalLotteryPool.sub(adminFeesAmount)).div(
-            lotteryConfig.numOfWinners
-        );
+        // rewardPoolAmount = (totalLotteryPool.sub(adminFeesAmount)).div(
+        //     lotteryConfig.numOfWinners
+        // );
         lotteryStatus = LotteryStatus.CLOSED;
 
         emit LotterySettled(
-            rewardPoolAmount,
+            distributionAmount.div(lotteryConfig.numOfWinners),
             lotteryConfig.numOfWinners,
             adminFeesAmount
         );
@@ -1277,10 +1277,7 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
     }
 
     function getWinningAmount() public view returns (uint256) {
-        uint256 expectedTotalLotteryPool = lotteryConfig.playersLimit.mul(
-            lotteryConfig.registrationAmount
-        );
-        uint256 rewardPool = (expectedTotalLotteryPool).div(
+        uint256 rewardPool = (distributionAmount).div(
             lotteryConfig.numOfWinners
         );
 
@@ -1303,6 +1300,7 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         //     "The Lottery is not settled. Please try in a short while."
         // );
         bool isWinner = false;
+        uint256 winningAmount = getWinningAmount();
         for (uint256 i = 0; i < lotteryConfig.playersLimit; i = i.add(1)) {
             address player = lotteryPlayers[i];
             // if (address(msg.sender) == winnerAddresses[winnerIndexes[i]]) {
@@ -1325,7 +1323,7 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
                 //     }("");
                 //     require(status, "Amount not transferred to winner");
                 // } else {
-                distributionToken.transfer(address(player), rewardPoolAmount);
+                distributionToken.transfer(address(player), winningAmount);
                 // }
             }
 
