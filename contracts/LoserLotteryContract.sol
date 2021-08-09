@@ -995,6 +995,12 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         uint256 _adminFees
     );
 
+    event LotteryPaused();
+
+    event LotteryUnPaused();
+
+    event EmergencyWithdrawn();
+
     event LotteryStarted(
         uint256 playersLimit,
         uint256 numOfWinners,
@@ -1018,9 +1024,9 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
      * construction.
      */
     constructor(
-        IERC20 _distributionToken,
-        uint256 _distributionAmount,
-        IERC20 _lotteryToken
+        IERC20 _distributionToken, // CNT
+        uint256 _distributionAmount, //
+        IERC20 _lotteryToken // Rechance Lottery token
     )
         public
         VRFConsumerBase(
@@ -1058,6 +1064,7 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         //     "Starting the Lottery requires Admin Access"
         // );
         pauseLottery = true;
+        emit LotteryPaused();
     }
 
     function unPauseNextLottery() public onlyOwner {
@@ -1066,6 +1073,7 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         //     "Starting the Lottery requires Admin Access"
         // );
         pauseLottery = false;
+        emit LotteryUnPaused();
         // resetLottery();
     }
 
@@ -1269,14 +1277,14 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
     }
 
     function getWinningAmount() public view returns (uint256) {
-        uint256 adminFees = (
-            (totalLotteryPool.mul(lotteryConfig.adminFeePercentage)).div(100)
+        uint256 expectedTotalLotteryPool = lotteryConfig.playersLimit.mul(
+            lotteryConfig.registrationAmount
         );
-        uint256 rewardPool = (totalLotteryPool.sub(adminFees)).div(
+        uint256 rewardPool = (expectedTotalLotteryPool).div(
             lotteryConfig.numOfWinners
         );
 
-        return rewardPoolAmount;
+        return rewardPool;
     }
 
     /**
@@ -1295,7 +1303,7 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         //     "The Lottery is not settled. Please try in a short while."
         // );
         bool isWinner = false;
-        for (uint256 i = 0; i < lotteryConfig.numOfWinners; i = i.add(1)) {
+        for (uint256 i = 0; i < lotteryConfig.playersLimit; i = i.add(1)) {
             address player = lotteryPlayers[i];
             // if (address(msg.sender) == winnerAddresses[winnerIndexes[i]]) {
             for (uint256 j = 0; j < lotteryConfig.numOfWinners; j = j.add(1)) {
@@ -1357,7 +1365,12 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
      * participants.
      */
     function emergencyWithdraw() external onlyOwner {
-        lotteryToken.transfer(msg.sender, lotteryToken.balanceOf(address(this)));
+        lotteryToken.transfer(
+            msg.sender,
+            lotteryToken.balanceOf(address(this))
+        );
+
+        emit EmergencyWithdrawn();
     }
 
     /**

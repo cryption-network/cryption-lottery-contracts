@@ -58,7 +58,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
 
     event LotteryPaused();
 
-    event UnLotteryPaused();
+    event LotteryUnPaused();
 
     event EmergencyWithdrawn();
 
@@ -121,7 +121,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         //     "Starting the Lottery requires Admin Access"
         // );
         pauseLottery = false;
-        emit UnLotteryPaused();
+        emit LotteryUnPaused();
         // resetLottery();
     }
 
