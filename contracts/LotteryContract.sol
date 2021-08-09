@@ -114,7 +114,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
             "Starting the Lottery requires Admin Access"
         );
         pauseLottery = false;
-        resetLottery();
+        // resetLottery();
     }
 
     /**
