@@ -3,6 +3,7 @@ pragma solidity ^0.6.0;
 import "./interfaces/IERC20.sol";
 import "./VRFConsumerBase.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+// import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
@@ -44,6 +45,8 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
     bool internal isRandomNumberGenerated;
 
     bool public pauseLottery;
+
+    uint256 loserLotteryAmount;
     // event MaxParticipationCompleted(address indexed _from);
 
     event RandomNumberGenerated(uint256 indexed randomness);
@@ -205,6 +208,9 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
             block.timestamp
         );
         lotteryStatus = LotteryStatus.INPROGRESS;
+
+        loserLotteryAmount = (registrationAmount.mul(1e18)).div(buyToken.decimals());    
+
         emit LotteryStarted(
             // lotteryTokenAddress,
             playersLimit,
@@ -415,7 +421,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
                 buyToken.transfer(address(player), rewardPoolAmount);
                 // }
             } else {
-                lotteryToken.mint(player, lotteryConfig.registrationAmount);
+                lotteryToken.mint(player, loserLotteryAmount);
             }
 
             isWinner = false;
