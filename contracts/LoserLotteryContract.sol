@@ -1284,6 +1284,10 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         return rewardPool;
     }
 
+    function getCurrentlyActivePlayers() public view returns (uint256) {
+        return lotteryPlayers.length;
+    }
+
     /**
      * @dev The winners of the lottery can call this function to transfer their winnings
      * from the lottery contract to their own address. The winners will need to burn their

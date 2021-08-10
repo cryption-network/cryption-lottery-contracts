@@ -23,19 +23,19 @@ async function main() {
   // We get the contract to deploy
   const network = "mumbai"; // Possible values : mumbai or matic
   const LoserLotteryContract = await hre.ethers.getContractFactory("LoserLotteryContract");
-  // const loserLotteryContractInstance = await LoserLotteryContract.deploy(
-  //   config[network].loserLotteryToken.distributionToken,
-  //   config[network].loserLotteryToken.distributionAmount,
-  //   config[network].loserLotteryToken.lotteryToken,
-  // );
+  const loserLotteryContractInstance = await LoserLotteryContract.deploy(
+    config[network].loserLotteryToken.distributionToken,
+    config[network].loserLotteryToken.distributionAmount,
+    config[network].loserLotteryToken.lotteryToken,
+  );
 
-  // await loserLotteryContractInstance.deployed();
+  await loserLotteryContractInstance.deployed();
 
-  // console.log("Loser Lottery Contract deployed to:", loserLotteryContractInstance.address);
-  // await sleep(20000);
+  console.log("Loser Lottery Contract deployed to:", loserLotteryContractInstance.address);
+  await sleep(20000);
 
   await hre.run("verify:verify", {
-    address: '0x17132127e21f3F409730a649BbE49238E67D7Fc1',
+    address: loserLotteryContractInstance.address,
     constructorArguments: [
       config[network].loserLotteryToken.distributionToken,
       config[network].loserLotteryToken.distributionAmount,
