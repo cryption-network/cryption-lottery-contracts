@@ -58,7 +58,7 @@ interface IERC20 {
 
     function burnFrom(address from, uint256 amount) external;
 
-    function decimals() external view returns (uint8);
+    function decimals() external view returns (uint256);
 
     /**
      * @dev Moves `amount` tokens from `sender` to `recipient` using the

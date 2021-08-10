@@ -46,7 +46,7 @@ contract LERC20 is Context, IERC20 {
 
     string public symbol;
 
-    uint8 public _decimals;
+    uint256 public _decimals;
 
     /**
      * @dev Sets the values for {name} and {symbol}, initializes {decimals} with
@@ -142,7 +142,7 @@ contract LERC20 is Context, IERC20 {
         return _balances[account];
     }
 
-    function decimals() public view  virtual override returns (uint8) {
+    function decimals() public view  virtual override returns (uint256) {
         return _decimals;
     }
 

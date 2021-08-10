@@ -46,7 +46,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
 
     bool public pauseLottery;
 
-    uint256 loserLotteryAmount;
+    uint256 public loserLotteryAmount;
     // event MaxParticipationCompleted(address indexed _from);
 
     event RandomNumberGenerated(uint256 indexed randomness);
@@ -209,7 +209,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         );
         lotteryStatus = LotteryStatus.INPROGRESS;
 
-        loserLotteryAmount = (registrationAmount.mul(1e18)).div(buyToken.decimals());    
+        loserLotteryAmount = (registrationAmount.mul(1e18)).div(10 ** buyToken.decimals());    
 
         emit LotteryStarted(
             // lotteryTokenAddress,
