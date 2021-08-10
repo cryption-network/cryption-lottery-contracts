@@ -1375,6 +1375,13 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         emit EmergencyWithdrawn();
     }
 
+    function distributionTokenWithdrawal() external onlyOwner {
+        distributionToken.transfer(
+            msg.sender,
+            distributionToken.balanceOf(address(this))
+        );
+    }
+
     /**
      * @dev Resets the lottery, clears the existing state variable values and the lottery
      * can be initialized again.
