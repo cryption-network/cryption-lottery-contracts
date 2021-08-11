@@ -135,6 +135,10 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         // resetLottery();
     }
 
+    function withdrawLink() external onlyOwner {
+        LINK.transfer(owner(), LINK.balanceOf(address(this)));
+    }
+
     function changeFeeAddress(address _feeAddress) public onlyOwner {
         require(_feeAddress != address(0), "Incorrect fee address");
         feeAddress = _feeAddress;
