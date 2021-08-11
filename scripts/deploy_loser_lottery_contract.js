@@ -21,7 +21,7 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
-  const network = "mumbai"; // Possible values : mumbai or matic
+  const network = "polygon"; // Possible values : mumbai or matic
   const LoserLotteryContract = await hre.ethers.getContractFactory("LoserLotteryContract");
   const loserLotteryContractInstance = await LoserLotteryContract.deploy(
     config[network].loserLotteryToken.distributionToken,

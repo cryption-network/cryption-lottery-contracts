@@ -14,7 +14,7 @@ function sleep(ms) {
 
 async function main() {
 
-  const network = "mumbai"; // Possible values : mumbai or matic
+  const network = "polygon"; // Possible values : mumbai or matic
 
   const LERC20 = await hre.ethers.getContractFactory("LERC20");
   const lERC20Instance = await LERC20.deploy(

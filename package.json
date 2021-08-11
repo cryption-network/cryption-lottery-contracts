@@ -5,9 +5,12 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "compile": "npx hardhat compile",
-    "deploy_lottery_token": "npx hardhat run scripts/deploy_lottery_erc20.js --network mumbai",
-    "deploy_loser_lottery": "npx hardhat run scripts/deploy_loser_lottery_contract.js --network mumbai",
-    "deploy_lottery": "npx hardhat run scripts/deploy_lottery_contract.js --network mumbai"
+    "deploy_lottery_token:mumbai": "npx hardhat run scripts/deploy_lottery_erc20.js --network mumbai",
+    "deploy_lottery_token:polygon": "npx hardhat run scripts/deploy_lottery_erc20.js --network polygon",
+    "deploy_loser_lottery:mumbai": "npx hardhat run scripts/deploy_loser_lottery_contract.js --network mumbai",
+    "deploy_loser_lottery:polygon": "npx hardhat run scripts/deploy_loser_lottery_contract.js --network polygon",
+    "deploy_lottery:mumbai": "npx hardhat run scripts/deploy_lottery_contract.js --network mumbai",
+    "deploy_lottery:polygon": "npx hardhat run scripts/deploy_lottery_contract.js --network polygon"
   },
   "license": "ISC",
   "dependencies": {

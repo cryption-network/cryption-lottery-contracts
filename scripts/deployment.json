@@ -5,7 +5,8 @@
     "loserLottery": "0x4E833b70b226781C65d9BA49d6d640Da02D93148"
   },
   "polygon": {
-    "lottery": "",
-    "lotteryERC20": ""
+    "lottery": "0x653441299ec28E0301d640006E2ceC4776ebA671",
+    "lotteryERC20": "0xb032512A23Ef041bEc2e48e9b3f07286408B2B26",
+    "loserLottery":"0xC598adCEBfB0E3503149142A663f65B5ac2482f1"
   }
 }
