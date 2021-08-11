@@ -2,7 +2,7 @@
   "mumbai": {
     "buyToken": "0x671b68fb02778D37a885699dA79c13Faf0d3C560",
     "lotteryToken": {
-      "address": "0xd5eb19076eb74D93Cee95DeF1B209A9f5704cA27",
+      "address": "0x996D0eE46047CD169b8A6854E4F76D6E816653c8",
       "name": "Lottery USD",
       "symbol": "LUSD",
       "decimals": "18"
@@ -10,16 +10,29 @@
     "loserLotteryToken": {
       "distributionToken": "0x766F03e47674608cCcF7414f6c4DDF3d963Ae394",
       "distributionAmount": "80000000000000000000",
-      "lotteryToken": "0xd5eb19076eb74D93Cee95DeF1B209A9f5704cA27"
-    }
+      "lotteryToken": "0x996D0eE46047CD169b8A6854E4F76D6E816653c8"
+    },
+    "feeAddress": "0xb60B993862673A87C16E4e6e5F75397131EEBb3e",
+    "vrfCoordinator": "0x8C7382F9D8f56b33781fE506E897a4F1e2d17255",
+    "link": "0x326C977E6efc84E512bB9C30f76E30c160eD06FB",
+    "keyHash": "0x6e75b569a01ef56d18cab6a8e71e6600d6ce853834d4a5748b720d06f878b3a4"
   },
-  "matic": {
+  "polygon": {
     "buyToken": "",
     "lotteryToken": {
       "address": "",
       "name": "Lottery USD",
       "symbol": "LUSD",
       "decimals": "18"
-    }
+    },
+    "loserLotteryToken": {
+      "distributionToken": "",
+      "distributionAmount": "80000000000000000000",
+      "lotteryToken": ""
+    },
+    "feeAddress": "",
+    "vrfCoordinator": "0x3d2341ADb2D31f1c5530cDC622016af293177AE0",
+    "link": "0xb0897686c545045aFc77CF20eC7A532E3120E0F1",
+    "keyHash": "0xf86195cf7690c55907b2b611ebb7343a6f649bff128701cc542f0569e2c549da"
   }
 }

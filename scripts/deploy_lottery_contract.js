@@ -25,7 +25,11 @@ async function main() {
   const LotteryContract = await hre.ethers.getContractFactory("LotteryContract");
   const lotteryContractInstance = await LotteryContract.deploy(
     config[network].buyToken,
-    config[network].lotteryToken.address
+    config[network].lotteryToken.address,
+    config[network].feeAddress,
+    config[network].vrfCoordinator,
+    config[network].link,
+    config[network].keyHash,
   );
 
   await lotteryContractInstance.deployed();
@@ -37,7 +41,11 @@ async function main() {
     address: lotteryContractInstance.address,
     constructorArguments: [
       config[network].buyToken,
-      config[network].lotteryToken.address
+      config[network].lotteryToken.address,
+      config[network].feeAddress,
+      config[network].vrfCoordinator,
+      config[network].link,
+      config[network].keyHash,
     ],
   });
 

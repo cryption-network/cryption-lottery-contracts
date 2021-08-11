@@ -27,6 +27,10 @@ async function main() {
     config[network].loserLotteryToken.distributionToken,
     config[network].loserLotteryToken.distributionAmount,
     config[network].loserLotteryToken.lotteryToken,
+    config[network].feeAddress,
+    config[network].vrfCoordinator,
+    config[network].link,
+    config[network].keyHash,
   );
 
   await loserLotteryContractInstance.deployed();
@@ -40,6 +44,10 @@ async function main() {
       config[network].loserLotteryToken.distributionToken,
       config[network].loserLotteryToken.distributionAmount,
       config[network].loserLotteryToken.lotteryToken,
+      config[network].feeAddress,
+      config[network].vrfCoordinator,
+      config[network].link,
+      config[network].keyHash,
     ],
   });
 

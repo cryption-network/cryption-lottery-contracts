@@ -21,7 +21,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
     }
 
     address[] public lotteryPlayers;
-    address public adminAddress;
+    address public feeAddress;
     enum LotteryStatus {
         NOTSTARTED,
         INPROGRESS,
@@ -89,18 +89,25 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
      * configuration of VRF Smart Contract. They can only be set once during
      * construction.
      */
-    constructor(IERC20 _buyToken, IERC20 _lotteryToken)
+    constructor(
+        IERC20 _buyToken,
+        IERC20 _lotteryToken,
+        address _feeAddress,
+        address _vrfCoordinator,
+        address _link,
+        bytes32 _keyHash
+    )
         public
         VRFConsumerBase(
-            0x8C7382F9D8f56b33781fE506E897a4F1e2d17255, // VRF Coordinator
-            0x326C977E6efc84E512bB9C30f76E30c160eD06FB // LINK Token
+            _vrfCoordinator, // VRF Coordinator
+            _link // LINK Token
         )
         Ownable()
     {
-        adminAddress = msg.sender;
+        feeAddress = _feeAddress;
         lotteryStatus = LotteryStatus.NOTSTARTED;
         totalLotteryPool = 0;
-        keyHash = 0x6e75b569a01ef56d18cab6a8e71e6600d6ce853834d4a5748b720d06f878b3a4;
+        keyHash = _keyHash;
         fee = 0.0001 * 10**18; // 0.0001 LINK
         areWinnersGenerated = false;
         isRandomNumberGenerated = false;
@@ -126,6 +133,11 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         pauseLottery = false;
         emit LotteryUnPaused();
         // resetLottery();
+    }
+
+    function changeFeeAddress(address _feeAddress) public onlyOwner {
+        require(_feeAddress != address(0), "Incorrect fee address");
+        feeAddress = _feeAddress;
     }
 
     /**
@@ -185,11 +197,11 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         uint256 registrationAmount,
         uint256 adminFeePercentage,
         uint256 randomSeed
-    ) public {
-        require(
-            msg.sender == adminAddress,
-            "Starting the Lottery requires Admin Access"
-        );
+    ) public onlyOwner {
+        // require(
+        //     msg.sender == adminAddress,
+        //     "Starting the Lottery requires Admin Access"
+        // );
         require(
             lotteryStatus == LotteryStatus.NOTSTARTED,
             "Error: An existing lottery is in progress"
@@ -209,7 +221,9 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         );
         lotteryStatus = LotteryStatus.INPROGRESS;
 
-        loserLotteryAmount = (registrationAmount.mul(1e18)).div(10 ** buyToken.decimals());    
+        loserLotteryAmount = (registrationAmount.mul(1e18)).div(
+            10**buyToken.decimals()
+        );
 
         emit LotteryStarted(
             // lotteryTokenAddress,
@@ -338,7 +352,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         //     }("");
         //     require(status, "Admin fees not transferred");
         // } else {
-        buyToken.transfer(adminAddress, adminFeesAmount);
+        buyToken.transfer(feeAddress, adminFeesAmount);
         // }
 
         emit LotterySettled(
@@ -364,7 +378,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         return rewardPool;
     }
 
-    function getCurrentlyActivePlayers() public view returns(uint256) {
+    function getCurrentlyActivePlayers() public view returns (uint256) {
         return lotteryPlayers.length;
     }
 
@@ -483,7 +497,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         // );
         uint256 tokenBalance = lotteryToken.balanceOf(address(this));
         if (tokenBalance > 0) {
-            buyToken.transfer(adminAddress, tokenBalance);
+            buyToken.transfer(feeAddress, tokenBalance);
         }
         // delete lotteryConfig;
         delete randomResult;

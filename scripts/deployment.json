@@ -1,9 +1,10 @@
 {
   "mumbai": {
-    "lottery": "0x30a78fB5846E3867Bb13DFF89fDa1347A5bFc2b3",
-    "lotteryERC20": "0x50EAbe163DBcb65D90556675E8ea780364A810FE"
+    "lottery": "0x7A75050c800d15b78fAd0A9271a50eF12BFcAb89",
+    "lotteryERC20": "0x996D0eE46047CD169b8A6854E4F76D6E816653c8",
+    "loserLottery": "0x4E833b70b226781C65d9BA49d6d640Da02D93148"
   },
-  "matic": {
+  "polygon": {
     "lottery": "",
     "lotteryERC20": ""
   }
