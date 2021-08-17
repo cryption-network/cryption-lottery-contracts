@@ -1418,7 +1418,7 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         // );
         uint256 tokenBalance = lotteryToken.balanceOf(address(this));
         if (tokenBalance > 0) {
-            buyToken.transfer(feeAddress, tokenBalance);
+            lotteryToken.transfer(feeAddress, tokenBalance);
         }
         // delete lotteryConfig;
         delete randomResult;

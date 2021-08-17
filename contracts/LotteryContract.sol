@@ -499,7 +499,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         //     lotteryStatus == LotteryStatus.CLOSED,
         //     "Lottery Still in Progress"
         // );
-        uint256 tokenBalance = lotteryToken.balanceOf(address(this));
+        uint256 tokenBalance = buyToken.balanceOf(address(this));
         if (tokenBalance > 0) {
             buyToken.transfer(feeAddress, tokenBalance);
         }
