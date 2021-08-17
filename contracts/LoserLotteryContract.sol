@@ -970,7 +970,6 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
     uint256 public rewardPoolAmount;
 
     IERC20 public lotteryToken;
-    IERC20 public buyToken;
     IERC20 public distributionToken;
     uint256 public distributionAmount;
     LotteryStatus public lotteryStatus;
@@ -1286,7 +1285,6 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
             lotteryConfig.numOfWinners,
             adminFeesAmount
         );
-        // buyToken.transfer(adminAddress, adminFeesAmount);
         collectRewards();
     }
 
