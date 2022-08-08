@@ -13,8 +13,7 @@ function sleep(ms) {
 }
 
 async function main() {
-
-  const network = "polygon"; // Possible values : mumbai or matic
+  const network = "polygon"; // Possible values : mumbai or polygon
 
   const LERC20 = await hre.ethers.getContractFactory("LERC20");
   const lERC20Instance = await LERC20.deploy(
@@ -33,10 +32,9 @@ async function main() {
     constructorArguments: [
       config[network].lotteryToken.name,
       config[network].lotteryToken.symbol,
-      config[network].lotteryToken.decimals
+      config[network].lotteryToken.decimals,
     ],
   });
-
 }
 
 main()

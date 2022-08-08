@@ -21,8 +21,10 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
-  const network = "polygon"; // Possible values : mumbai or matic
-  const LoserLotteryContract = await hre.ethers.getContractFactory("LoserLotteryContract");
+  const network = "polygon"; // Possible values : mumbai or polygon
+  const LoserLotteryContract = await hre.ethers.getContractFactory(
+    "LoserLotteryContract"
+  );
   const loserLotteryContractInstance = await LoserLotteryContract.deploy(
     config[network].loserLotteryToken.distributionToken,
     config[network].loserLotteryToken.distributionAmount,
@@ -30,12 +32,15 @@ async function main() {
     config[network].feeAddress,
     config[network].vrfCoordinator,
     config[network].link,
-    config[network].keyHash,
+    config[network].keyHash
   );
 
   await loserLotteryContractInstance.deployed();
 
-  console.log("Loser Lottery Contract deployed to:", loserLotteryContractInstance.address);
+  console.log(
+    "Loser Lottery Contract deployed to:",
+    loserLotteryContractInstance.address
+  );
   await sleep(20000);
 
   await hre.run("verify:verify", {
@@ -50,7 +55,6 @@ async function main() {
       config[network].keyHash,
     ],
   });
-
 }
 
 main()
