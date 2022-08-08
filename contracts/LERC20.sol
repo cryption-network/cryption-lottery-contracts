@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.6.0;
 
 import "@openzeppelin/contracts/GSN/Context.sol";
@@ -142,7 +143,7 @@ contract LERC20 is Context, IERC20 {
         return _balances[account];
     }
 
-    function decimals() public view  virtual override returns (uint256) {
+    function decimals() public view virtual override returns (uint256) {
         return _decimals;
     }
 

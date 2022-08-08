@@ -1,5 +1,6 @@
 require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-etherscan");
+require("dotenv").config();
 
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
 const INFURA_API = process.env.INFURA_API;
@@ -24,7 +25,7 @@ module.exports = {
   etherscan: {
     // Your API key for Etherscan
     // Obtain one at https://etherscan.io/
-    apiKey: process.env.apiKey
+    apiKey: process.env.ETHERSCAN_API_KEY,
   },
   networks: {
     localhost: {
@@ -34,7 +35,7 @@ module.exports = {
       url: INFURA_API,
       accounts: [`0x${PRIVATE_KEY}`],
     },
-    matic: {
+    mumbai: {
       url: INFURA_API,
       accounts: [`0x${PRIVATE_KEY}`],
     },
@@ -75,4 +76,4 @@ module.exports = {
       },
     ],
   },
-}
+};

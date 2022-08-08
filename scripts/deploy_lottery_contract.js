@@ -21,8 +21,10 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
-  const network = "polygon"; // Possible values : mumbai or matic
-  const LotteryContract = await hre.ethers.getContractFactory("LotteryContract");
+  const network = "polygon"; // Possible values : mumbai or polygon
+  const LotteryContract = await hre.ethers.getContractFactory(
+    "LotteryContract"
+  );
 
   await sleep(20000);
 
@@ -32,7 +34,7 @@ async function main() {
     config[network].feeAddress,
     config[network].vrfCoordinator,
     config[network].link,
-    config[network].keyHash,
+    config[network].keyHash
   );
 
   await lotteryContractInstance.deployed();
@@ -51,7 +53,6 @@ async function main() {
       config[network].keyHash,
     ],
   });
-
 }
 
 main()

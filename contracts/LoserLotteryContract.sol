@@ -970,7 +970,6 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
     uint256 public rewardPoolAmount;
 
     IERC20 public lotteryToken;
-    IERC20 public buyToken;
     IERC20 public distributionToken;
     uint256 public distributionAmount;
     LotteryStatus public lotteryStatus;
@@ -983,16 +982,16 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
     bool internal isRandomNumberGenerated;
     bool public pauseLottery;
 
-    event MaxParticipationCompleted(address indexed _from);
+    // event MaxParticipationCompleted(address indexed _from);
 
     event RandomNumberGenerated(uint256 indexed randomness);
 
     event WinnersGenerated(uint256[] winnerIndexes);
 
     event LotterySettled(
-        uint256 _rewardPoolAmount,
-        uint256 _players,
-        uint256 _adminFees
+        uint256 indexed _rewardPoolAmount,
+        uint256 indexed _players,
+        uint256 indexed _adminFees
     );
 
     event LotteryPaused();
@@ -1002,13 +1001,40 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
     event EmergencyWithdrawn();
 
     event LotteryStarted(
-        uint256 playersLimit,
-        uint256 numOfWinners,
-        uint256 registrationAmount,
+        uint256 indexed playersLimit,
+        uint256 indexed numOfWinners,
+        uint256 indexed registrationAmount,
         uint256 startedAt
     );
 
     event LotteryReset();
+
+    event PlayerEntered(
+        address indexed _player,
+        uint256 indexed _remainingSpots,
+        uint256 indexed _totalSpots
+    );
+
+    event LotteryFull(
+        IERC20 indexed _lotteryToken,
+        IERC20 indexed _distributionToken
+    );
+
+    event NewLotteryRoundStarted(
+        IERC20 indexed _lotteryToken,
+        IERC20 indexed _distributionToken
+    );
+
+    event LotteryRoundEnded(
+        IERC20 indexed _lotteryToken,
+        IERC20 indexed _distributionToken
+    );
+
+    event WinningsDispersed(
+        IERC20 indexed _lotteryToken,
+        IERC20 indexed _distributionToken,
+        uint256 indexed _rewardPoolAmount
+    );
 
     /**
      * @dev Sets the value for adminAddress which establishes the Admin of the contract
@@ -1206,8 +1232,9 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
             "Max Participation for the Lottery Reached"
         );
 
-        // If lottery is paused, then do allow anyone to enter the lottery.
+        // If lottery is paused, then don't allow anyone to enter the lottery.
         if (lotteryPlayers.length == 0) {
+            emit NewLotteryRoundStarted(lotteryToken, distributionToken);
             require(!pauseLottery, "Lottery is paused");
         }
         require(
@@ -1221,8 +1248,15 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
             lotteryConfig.registrationAmount
         );
 
+        emit PlayerEntered(
+            msg.sender,
+            lotteryConfig.playersLimit.sub(lotteryPlayers.length),
+            lotteryConfig.playersLimit
+        );
+
         if (lotteryPlayers.length == lotteryConfig.playersLimit) {
             // emit MaxParticipationCompleted(msg.sender);
+            emit LotteryFull(lotteryToken, distributionToken);
             getRandomNumber(lotteryConfig.randomSeed);
             // settleLottery();
         }
@@ -1286,7 +1320,6 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
             lotteryConfig.numOfWinners,
             adminFeesAmount
         );
-        // buyToken.transfer(adminAddress, adminFeesAmount);
         collectRewards();
     }
 
@@ -1350,6 +1383,7 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
 
         // If the lottery is not paused, then reset lottery to be playable continously
         // if (!pauseLottery) {
+        emit WinningsDispersed(lotteryToken, distributionToken, winningAmount);
         resetLottery();
         // }
     }
@@ -1418,7 +1452,7 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         // );
         uint256 tokenBalance = lotteryToken.balanceOf(address(this));
         if (tokenBalance > 0) {
-            buyToken.transfer(feeAddress, tokenBalance);
+            lotteryToken.transfer(feeAddress, tokenBalance);
         }
         // delete lotteryConfig;
         delete randomResult;
@@ -1434,5 +1468,6 @@ contract LoserLotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         delete winnerIndexes;
         delete lotteryPlayers;
         emit LotteryReset();
+        emit LotteryRoundEnded(lotteryToken, distributionToken);
     }
 }

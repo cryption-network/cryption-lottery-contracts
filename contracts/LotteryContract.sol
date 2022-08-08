@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.6.0;
 
 import "./interfaces/IERC20.sol";
@@ -54,9 +55,9 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
     event WinnersGenerated(uint256[] winnerIndexes);
 
     event LotterySettled(
-        uint256 _rewardPoolAmount,
-        uint256 _players,
-        uint256 _adminFees
+        uint256 indexed _rewardPoolAmount,
+        uint256 indexed _players,
+        uint256 indexed _adminFees
     );
 
     event LotteryPaused();
@@ -68,13 +69,40 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
     // LotterySettled(rewardPoolAmount, players, adminFeesAmount);
 
     event LotteryStarted(
-        uint256 playersLimit,
-        uint256 numOfWinners,
-        uint256 registrationAmount,
+        uint256 indexed playersLimit,
+        uint256 indexed numOfWinners,
+        uint256 indexed registrationAmount,
         uint256 startedAt
     );
 
     event LotteryReset();
+
+    event PlayerEntered(
+        address indexed _player,
+        uint256 indexed _remainingSpots,
+        uint256 indexed _totalSpots
+    );
+
+    event LotteryFull(
+        IERC20 indexed _buyToken,
+        uint256 indexed _registrationAmount
+    );
+
+    event NewLotteryRoundStarted(
+        IERC20 indexed _buyToken,
+        uint256 indexed _registrationAmount
+    );
+
+    event LotteryRoundEnded(
+        IERC20 indexed _buyToken,
+        uint256 indexed _registrationAmount
+    );
+
+    event WinningsDispersed(
+        IERC20 indexed _buyToken,
+        uint256 indexed _registrationAmount,
+        uint256 indexed _rewardPoolAmount
+    );
 
     /**
      * @dev Sets the value for adminAddress which establishes the Admin of the contract
@@ -269,6 +297,10 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         // );
 
         if (lotteryPlayers.length == 0) {
+            emit NewLotteryRoundStarted(
+                buyToken,
+                lotteryConfig.registrationAmount
+            );
             require(!pauseLottery, "Lottery is paused");
         }
 
@@ -287,12 +319,19 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         totalLotteryPool = totalLotteryPool.add(
             lotteryConfig.registrationAmount
         );
+
+        emit PlayerEntered(
+            msg.sender,
+            lotteryConfig.playersLimit.sub(lotteryPlayers.length),
+            lotteryConfig.playersLimit
+        );
         // call _mint from constructor ERC20
         // Not giving loser lottery tokens !!
         // lotteryToken.mint(msg.sender, lotteryConfig.registrationAmount);
 
         if (lotteryPlayers.length == lotteryConfig.playersLimit) {
             // emit MaxParticipationCompleted(msg.sender); // this is not needed now
+            emit LotteryFull(buyToken, lotteryConfig.registrationAmount);
             getRandomNumber(lotteryConfig.randomSeed);
         }
         return (lotteryPlayers.length).sub(1);
@@ -444,7 +483,11 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
 
             isWinner = false;
         }
-
+        emit WinningsDispersed(
+            buyToken,
+            lotteryConfig.registrationAmount,
+            rewardPoolAmount
+        );
         resetLottery();
     }
 
@@ -499,7 +542,7 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         //     lotteryStatus == LotteryStatus.CLOSED,
         //     "Lottery Still in Progress"
         // );
-        uint256 tokenBalance = lotteryToken.balanceOf(address(this));
+        uint256 tokenBalance = buyToken.balanceOf(address(this));
         if (tokenBalance > 0) {
             buyToken.transfer(feeAddress, tokenBalance);
         }
@@ -517,5 +560,6 @@ contract LotteryContract is VRFConsumerBase, ReentrancyGuard, Ownable {
         delete winnerIndexes;
         delete lotteryPlayers;
         emit LotteryReset();
+        emit LotteryRoundEnded(buyToken, lotteryConfig.registrationAmount);
     }
 }
